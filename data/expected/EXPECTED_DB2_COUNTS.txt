@@ -1,0 +1,6 @@
+DB2 EXPECTED METRICS:
+GUEST Table Rows       : 10
+ROOM Table Rows        : 19
+RESERVATION Table Rows : 92
+BILL Table Rows        : 90
+PAYMENT Table Rows     : 1

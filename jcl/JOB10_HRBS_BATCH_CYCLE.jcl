@@ -1,0 +1,181 @@
+//HRBSBCH  JOB (ACCT),'HRBS MASTER BATCH',CLASS=A,MSGCLASS=X,
+//             NOTIFY=&SYSUID
+//*====================================================================
+//* HOTEL RESERVATION AND BILLING SYSTEM (HRBS) - MASTER BATCH CYCLE
+//*
+//* STEP FLOW:
+//*   STEP00: ALLOCATE GDG BASES & CLEANUP TEMPORARY DATASETS
+//*   STEP01: DFSORT DEDUPLICATION & SORT (ASSIGNMENT 1)
+//*   STEP02: COBOL HRBSVAL (RESERVATION VALIDATION)
+//*   STEP03: IDCAMS DEFINE CLUSTER & REPRO (VSAM KSDS MASTER)
+//*   STEP04: COBOL HRBSUPD (VSAM TRANSACTION ENGINE)
+//*   STEP05: COBOL HRBSBIL (BILLING ENGINE -> INVOICE GDG(+1))
+//*   STEP06: COBOL HRBSRPT (132-COLUMN BILLING REPORT GDG(+1))
+//*   STEP07: COBOL HRBSDB2 (DB2 LOAD & UNPAID BILLS REPORT)
+//*   STEP08: ICETOOL RECORD COUNT AUDIT & RECONCILIATION
+//*
+//* RETURN CODE POLICY:
+//*   CC 0000 = NORMAL SUCCESS
+//*   CC 0004 = WARNING (VALIDATION / TRANSACTION REJECTS LOGGED)
+//*   CC 0008 = APPLICATION ERROR (DATASET KEPT AS DIAGNOSTIC)
+//*   CC 0012+= FATAL ERROR (SUBSEQUENT STEPS BYPASSED VIA COND)
+//*
+//* RESTART GUIDANCE:
+//*   TO RESTART AT ANY STEP, ADD 'RESTART=STEP0X' TO THE JOB CARD:
+//*   EXAMPLE: //HRBSBCH JOB (ACCT),...,RESTART=STEP05
+//*====================================================================
+//* STEP 00: INITIALIZE GDG BASES & CLEANUP OLD DATASETS
+//*--------------------------------------------------------------------
+//STEP00   EXEC PGM=IDCAMS
+//SYSPRINT DD SYSOUT=*
+//SYSIN    DD *
+  DELETE &SYSUID..HRBS.RESERV.SORTED PURGE
+  DELETE &SYSUID..HRBS.RESERV.VALID PURGE
+  DELETE &SYSUID..HRBS.RESERV.REJECT PURGE
+  DELETE &SYSUID..HRBS.TRANS.AUDIT PURGE
+  DELETE &SYSUID..HRBS.TRANS.REJECT PURGE
+  SET MAXCC = 0
+
+  DEFINE GDG (NAME(&SYSUID..HRBS.INVOICE.GDG) -
+         LIMIT(7) SCRATCH NOEMPTY)
+  DEFINE GDG (NAME(&SYSUID..HRBS.REPORT.GDG) -
+         LIMIT(7) SCRATCH NOEMPTY)
+  SET MAXCC = 0
+/*
+//*--------------------------------------------------------------------
+//* STEP 01: DFSORT DEDUPLICATION & ASCENDING SORT (ASSIGNMENT 1)
+//*--------------------------------------------------------------------
+//STEP01   EXEC PGM=SORT
+//SYSOUT   DD SYSOUT=*
+//SORTIN   DD DISP=SHR,DSN=&SYSUID..HRBS.RESERV.INPUT
+//SORTOUT  DD DSN=&SYSUID..HRBS.RESERV.SORTED,DISP=(NEW,CATLG,DELETE),
+//            SPACE=(TRK,(5,5),RLSE),
+//            DCB=(RECFM=FB,LRECL=80,BLKSIZE=0)
+//SYSIN    DD *
+  OPTION EQUALS
+  SORT FIELDS=(13,8,CH,A)
+  SUM FIELDS=NONE
+/*
+//*--------------------------------------------------------------------
+//* STEP 02: HRBSVAL RESERVATION VALIDATION ENGINE
+//*--------------------------------------------------------------------
+//STEP02   EXEC PGM=HRBSVAL,COND=(4,LT,STEP01)
+//STEPLIB  DD DISP=SHR,DSN=&SYSUID..HRBS.LOAD
+//RESVIN   DD DISP=SHR,DSN=&SYSUID..HRBS.RESERV.SORTED
+//VALOUT   DD DSN=&SYSUID..HRBS.RESERV.VALID,DISP=(NEW,CATLG,DELETE),
+//            SPACE=(TRK,(5,5),RLSE),
+//            DCB=(RECFM=FB,LRECL=80,BLKSIZE=0)
+//REJOUT   DD DSN=&SYSUID..HRBS.RESERV.REJECT,DISP=(NEW,CATLG,DELETE),
+//            SPACE=(TRK,(2,2),RLSE),
+//            DCB=(RECFM=FB,LRECL=120,BLKSIZE=0)
+//SYSOUT   DD SYSOUT=*
+//CEEDUMP  DD SYSOUT=*
+//*--------------------------------------------------------------------
+//* STEP 03: DEFINE VSAM KSDS AND INITIAL REPRO
+//*--------------------------------------------------------------------
+//STEP03   EXEC PGM=IDCAMS,COND=(4,LT,STEP02)
+//SYSPRINT DD SYSOUT=*
+//SYSIN    DD *
+  DELETE &SYSUID..HRBS.RESERV.KSDS CLUSTER PURGE
+  SET MAXCC = 0
+
+  DEFINE CLUSTER (NAME(&SYSUID..HRBS.RESERV.KSDS) -
+         INDEXED -
+         KEYS(8 12) -
+         RECORDSIZE(80 80) -
+         TRACKS(5 5) -
+         FREESPACE(10 10) -
+         SHAREOPTIONS(2 3)) -
+    DATA  (NAME(&SYSUID..HRBS.RESERV.KSDS.DATA)) -
+    INDEX (NAME(&SYSUID..HRBS.RESERV.KSDS.INDEX))
+
+  IF LASTCC = 0 THEN -
+    REPRO INDATASET(&SYSUID..HRBS.RESERV.VALID) -
+          OUTDATASET(&SYSUID..HRBS.RESERV.KSDS)
+/*
+//*--------------------------------------------------------------------
+//* STEP 04: HRBSUPD TRANSACTION UPDATE ON VSAM KSDS
+//*--------------------------------------------------------------------
+//STEP04   EXEC PGM=HRBSUPD,COND=(4,LT,STEP03)
+//STEPLIB  DD DISP=SHR,DSN=&SYSUID..HRBS.LOAD
+//KSDSDD   DD DISP=SHR,DSN=&SYSUID..HRBS.RESERV.KSDS
+//TRNIN    DD DISP=SHR,DSN=&SYSUID..HRBS.TRANS.INPUT
+//AUDOUT   DD DSN=&SYSUID..HRBS.TRANS.AUDIT,DISP=(NEW,CATLG,DELETE),
+//            SPACE=(TRK,(5,5),RLSE),
+//            DCB=(RECFM=FB,LRECL=120,BLKSIZE=0)
+//REJOUT   DD DSN=&SYSUID..HRBS.TRANS.REJECT,DISP=(NEW,CATLG,DELETE),
+//            SPACE=(TRK,(2,2),RLSE),
+//            DCB=(RECFM=FB,LRECL=120,BLKSIZE=0)
+//SYSOUT   DD SYSOUT=*
+//CEEDUMP  DD SYSOUT=*
+//*--------------------------------------------------------------------
+//* STEP 05: HRBSBIL BILLING ENGINE (INVOICE GENERATION TO GDG)
+//*--------------------------------------------------------------------
+//STEP05   EXEC PGM=HRBSBIL,COND=(4,LT,STEP04)
+//STEPLIB  DD DISP=SHR,DSN=&SYSUID..HRBS.LOAD
+//RESVIN   DD DISP=SHR,DSN=&SYSUID..HRBS.RESERV.VALID
+//SRVFILE  DD DISP=SHR,DSN=&SYSUID..HRBS.SERVICE.INPUT
+//INVOUT   DD DSN=&SYSUID..HRBS.INVOICE.GDG(+1),
+//            DISP=(NEW,CATLG,DELETE),
+//            SPACE=(TRK,(5,5),RLSE),
+//            DCB=(RECFM=FB,LRECL=100,BLKSIZE=0)
+//SYSOUT   DD SYSOUT=*
+//CEEDUMP  DD SYSOUT=*
+//*--------------------------------------------------------------------
+//* STEP 06: DFSORT & HRBSRPT (132-COL BILLING REPORT TO GDG)
+//*--------------------------------------------------------------------
+//SRTRPT   EXEC PGM=SORT,COND=(4,LT,STEP05)
+//SYSOUT   DD SYSOUT=*
+//SORTIN   DD DISP=SHR,DSN=&SYSUID..HRBS.INVOICE.GDG(+1)
+//SORTOUT  DD DSN=&&SRTINV,DISP=(NEW,PASS),SPACE=(TRK,(5,5),RLSE),
+//            DCB=(RECFM=FB,LRECL=100,BLKSIZE=0)
+//SYSIN    DD *
+  SORT FIELDS=(25,8,CH,A)
+/*
+//*
+//STEP06   EXEC PGM=HRBSRPT,COND=(4,LT,SRTRPT)
+//STEPLIB  DD DISP=SHR,DSN=&SYSUID..HRBS.LOAD
+//INFILE   DD DSN=&&SRTINV,DISP=(OLD,DELETE)
+//RPTFILE  DD DSN=&SYSUID..HRBS.REPORT.GDG(+1),DISP=(NEW,CATLG,DELETE),
+//            SPACE=(TRK,(5,5),RLSE),
+//            DCB=(RECFM=FB,LRECL=132,BLKSIZE=0)
+//SYSOUT   DD SYSOUT=*
+//CEEDUMP  DD SYSOUT=*
+//*--------------------------------------------------------------------
+//* STEP 07: HRBSDB2 BATCH LOAD & CURSOR REPORT
+//*--------------------------------------------------------------------
+//STEP07   EXEC PGM=IKJEFT01,DYNAMNBR=20,COND=(4,LT,STEP06)
+//STEPLIB  DD DISP=SHR,DSN=DSN120.SDSNLOAD
+//         DD DISP=SHR,DSN=&SYSUID..HRBS.LOAD
+//RESVIN   DD DISP=SHR,DSN=&SYSUID..HRBS.RESERV.VALID
+//INVIN    DD DISP=SHR,DSN=&SYSUID..HRBS.INVOICE.GDG(+1)
+//SYSTSPRT DD SYSOUT=*
+//SYSOUT   DD SYSOUT=*
+//CEEDUMP  DD SYSOUT=*
+//SYSTSIN  DD *
+  DSN SYSTEM(DB2P)
+  RUN PROGRAM(HRBSDB2) PLAN(HRBSPLAN) LIB('&SYSUID..HRBS.LOAD')
+  END
+/*
+//*--------------------------------------------------------------------
+//* STEP 08: ICETOOL RECORD COUNT AUDIT & INTEGRITY CHECK
+//*--------------------------------------------------------------------
+//STEP08   EXEC PGM=ICETOOL,COND=(4,LT,STEP07)
+//TOOLMSG  DD SYSOUT=*
+//DFSMSG   DD SYSOUT=*
+//INVDATA  DD DISP=SHR,DSN=&SYSUID..HRBS.INVOICE.GDG(+1)
+//TOOLIN   DD *
+  COUNT FROM(INVDATA) HIGHER(0) RC4
+/*
+//*--------------------------------------------------------------------
+//* STEP 09: FINAL BATCH CYCLE COMPLETION NOTIFICATION
+//*--------------------------------------------------------------------
+//STEP09   EXEC PGM=IEBGENER,COND=(0,EQ)
+//SYSPRINT DD SYSOUT=*
+//SYSIN    DD DUMMY
+//SYSUT1   DD *
+=======================================================================
+**** HRBS MASTER BATCH CYCLE COMPLETED WITH INTEGRITY - CC 0000 ****
+=======================================================================
+/*
+//SYSUT2   DD SYSOUT=*

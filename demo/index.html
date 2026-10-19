@@ -1,0 +1,2144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HRBS - Hotel Reservation and Billing System (Mainframe Simulation)</title>
+  <style>
+    /* Reset & Base Variables */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    :root {
+      --navy-900: #0a192f;
+      --navy-800: #1e293b;
+      --navy-700: #334155;
+      --blue-600: #2563eb;
+      --blue-700: #1d4ed8;
+      --blue-50: #eff6ff;
+      --green-600: #059669;
+      --green-700: #047857;
+      --green-100: #dcfce7;
+      --green-800: #166534;
+      --amber-500: #f59e0b;
+      --amber-600: #d97706;
+      --amber-100: #fef3c7;
+      --amber-800: #92400e;
+      --red-600: #dc2626;
+      --red-100: #fee2e2;
+      --red-800: #991b1b;
+      --slate-50: #f8fafc;
+      --slate-100: #f1f5f9;
+      --slate-200: #e2e8f0;
+      --slate-300: #cbd5e1;
+      --slate-600: #475569;
+      --slate-700: #334155;
+      --slate-800: #1e293b;
+      --mono: Consolas, "Courier New", Courier, monospace;
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      font-family: var(--sans);
+      background-color: var(--slate-50);
+      color: var(--slate-800);
+      line-height: 1.5;
+      padding-bottom: 60px;
+    }
+
+    /* Honesty Banner */
+    .honesty-banner {
+      background-color: #fef08a;
+      color: #854d0e;
+      border-bottom: 2px solid #eab308;
+      padding: 10px 20px;
+      text-align: center;
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+    }
+    .honesty-banner span {
+      margin-right: 6px;
+    }
+
+    /* Header */
+    header.app-header {
+      background: linear-gradient(135deg, var(--navy-900) 0%, var(--navy-800) 100%);
+      color: #ffffff;
+      padding: 24px 32px 18px 32px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .header-titles h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .header-titles .subtitle {
+      font-size: 0.92rem;
+      color: #94a3b8;
+      margin-top: 4px;
+    }
+    .header-badges {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+      font-size: 0.85rem;
+    }
+    .college-tag {
+      background: rgba(255,255,255,0.12);
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-weight: 500;
+      color: #e2e8f0;
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+    .meta-tag {
+      color: #cbd5e1;
+      font-size: 0.82rem;
+    }
+
+    /* Student info strip */
+    .student-info-strip {
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      font-size: 0.88rem;
+      color: #cbd5e1;
+    }
+    .student-info-strip strong {
+      color: #ffffff;
+    }
+    .student-placeholder {
+      color: #38bdf8;
+      font-family: var(--mono);
+      font-weight: 600;
+    }
+
+    /* Tabs Navigation */
+    nav.app-nav {
+      background: #ffffff;
+      border-bottom: 1px solid var(--slate-200);
+      padding: 0 32px;
+      display: flex;
+      overflow-x: auto;
+      gap: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+      position: sticky;
+      top: 43px;
+      z-index: 900;
+    }
+    .nav-tab {
+      padding: 14px 18px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--slate-600);
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+    .nav-tab:hover {
+      color: var(--navy-800);
+      background-color: var(--slate-50);
+    }
+    .nav-tab.active {
+      color: var(--blue-600);
+      border-bottom-color: var(--blue-600);
+      background-color: transparent;
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .badge-done {
+      background-color: var(--green-100);
+      color: var(--green-800);
+      border: 1px solid #86efac;
+    }
+    .badge-planned {
+      background-color: var(--amber-100);
+      color: var(--amber-800);
+      border: 1px solid #fcd34d;
+    }
+    .badge-dup {
+      background-color: var(--red-100);
+      color: var(--red-800);
+      border: 1px solid #fca5a5;
+    }
+    .badge-code {
+      background-color: var(--slate-100);
+      color: var(--slate-700);
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      border: 1px solid var(--slate-300);
+    }
+
+    /* Content Area */
+    main.content-area {
+      max-width: 1280px;
+      margin: 28px auto;
+      padding: 0 24px;
+    }
+
+    .tab-pane {
+      display: none;
+    }
+    .tab-pane.active {
+      display: block;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Cards */
+    .card {
+      background: #ffffff;
+      border: 1px solid var(--slate-200);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--slate-100);
+    }
+    .card-header h2 {
+      font-size: 1.3rem;
+      color: var(--navy-900);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card-header h3 {
+      font-size: 1.1rem;
+      color: var(--navy-800);
+    }
+
+    /* Grid Layouts */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 18px;
+      margin-bottom: 20px;
+    }
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    /* Metric & KPI widgets */
+    .kpi-card {
+      background: var(--slate-50);
+      border: 1px solid var(--slate-200);
+      border-radius: 6px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+    }
+    .kpi-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--slate-600);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .kpi-value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--navy-900);
+      margin-top: 4px;
+    }
+    .kpi-desc {
+      font-size: 0.82rem;
+      color: var(--slate-600);
+      margin-top: 4px;
+    }
+
+    /* Progress bar */
+    .progress-bar-container {
+      width: 100%;
+      height: 12px;
+      background-color: var(--slate-200);
+      border-radius: 9999px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--green-600) 0%, #10b981 100%);
+      width: 50%;
+      transition: width 0.3s ease;
+    }
+
+    /* Action Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: 6px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      border: 1px solid transparent;
+    }
+    .btn-primary {
+      background-color: var(--blue-600);
+      color: #ffffff;
+    }
+    .btn-primary:hover {
+      background-color: var(--blue-700);
+    }
+    .btn-success {
+      background-color: var(--green-600);
+      color: #ffffff;
+    }
+    .btn-success:hover {
+      background-color: var(--green-700);
+    }
+    .btn-outline {
+      background-color: transparent;
+      border-color: var(--slate-300);
+      color: var(--slate-700);
+    }
+    .btn-outline:hover {
+      background-color: var(--slate-100);
+    }
+    .btn-amber {
+      background-color: var(--amber-600);
+      color: #ffffff;
+    }
+    .btn-amber:hover {
+      background-color: #b45309;
+    }
+
+    /* Tables */
+    .table-container {
+      border: 1px solid var(--slate-200);
+      border-radius: 6px;
+      overflow-x: auto;
+      max-height: 380px;
+      background: #ffffff;
+    }
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      text-align: left;
+    }
+    table.data-table th {
+      background-color: var(--slate-100);
+      color: var(--slate-700);
+      font-weight: 600;
+      padding: 10px 12px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      border-bottom: 2px solid var(--slate-200);
+      white-space: nowrap;
+    }
+    table.data-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--slate-100);
+      white-space: nowrap;
+    }
+    table.data-table tbody tr:nth-child(even) {
+      background-color: var(--slate-50);
+    }
+    table.data-table tbody tr:hover {
+      background-color: #e0f2fe;
+    }
+    table.data-table tr.highlight-dup {
+      background-color: #fff1f2 !important;
+    }
+    .mono-cell {
+      font-family: var(--mono);
+      font-size: 0.84rem;
+    }
+    .key-highlight {
+      color: var(--blue-600);
+      font-weight: 700;
+      background-color: #dbeafe;
+      padding: 2px 4px;
+      border-radius: 3px;
+    }
+
+    /* Code Viewers */
+    .code-box {
+      background-color: #0f172a;
+      color: #f8fafc;
+      border-radius: 6px;
+      padding: 16px;
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      line-height: 1.5;
+      overflow-x: auto;
+      border: 1px solid #1e293b;
+    }
+    .code-comment {
+      color: #64748b;
+    }
+    .code-keyword {
+      color: #38bdf8;
+      font-weight: bold;
+    }
+    .code-string {
+      color: #a5d6a7;
+    }
+    .code-number {
+      color: #fbc02d;
+    }
+
+    /* ISPF Ruler View */
+    .ruler-container {
+      background-color: #0b1120;
+      color: #38bdf8;
+      font-family: var(--mono);
+      padding: 16px;
+      border-radius: 6px;
+      overflow-x: auto;
+      margin: 14px 0;
+      border: 1px solid #1e293b;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+    }
+    .ruler-digits {
+      color: #94a3b8;
+      user-select: none;
+    }
+    .ruler-ticks {
+      color: #64748b;
+      user-select: none;
+    }
+    .ruler-data {
+      color: #ffffff;
+      font-weight: 500;
+    }
+    .ruler-pointer {
+      color: #f59e0b;
+      font-weight: bold;
+    }
+
+    /* Filter Toolbar */
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .search-input {
+      padding: 8px 14px;
+      font-size: 0.88rem;
+      border: 1px solid var(--slate-300);
+      border-radius: 6px;
+      width: 280px;
+      background: #ffffff;
+    }
+    .search-input:focus {
+      outline: none;
+      border-color: var(--blue-600);
+      box-shadow: 0 0 0 2px rgba(37,99,235,0.15);
+    }
+    .select-input {
+      padding: 8px 12px;
+      font-size: 0.88rem;
+      border: 1px solid var(--slate-300);
+      border-radius: 6px;
+      background: #ffffff;
+    }
+
+    /* Alert / Notice Boxes */
+    .notice-box {
+      padding: 12px 16px;
+      border-radius: 6px;
+      margin: 14px 0;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .notice-green {
+      background-color: var(--green-100);
+      border: 1px solid #86efac;
+      color: var(--green-800);
+    }
+    .notice-amber {
+      background-color: var(--amber-100);
+      border: 1px solid #fcd34d;
+      color: var(--amber-800);
+    }
+    .notice-blue {
+      background-color: var(--blue-50);
+      border: 1px solid #bfdbfe;
+      color: #1e40af;
+    }
+
+    /* Architecture Diagram Interactive Nodes */
+    .pipeline-diagram {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin: 20px 0;
+    }
+    .pipe-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    .pipe-node {
+      background: #ffffff;
+      border: 2px solid var(--slate-300);
+      border-radius: 8px;
+      padding: 12px 16px;
+      min-width: 170px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    }
+    .pipe-node:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+    }
+    .pipe-node.node-done {
+      border-color: #10b981;
+      background-color: #f0fdf4;
+    }
+    .pipe-node.node-planned {
+      border-color: #f59e0b;
+      background-color: #fffbeb;
+    }
+    .pipe-node.active-node {
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.3);
+      border-color: var(--blue-600);
+    }
+    .pipe-node-title {
+      font-weight: 700;
+      font-size: 0.92rem;
+      color: var(--navy-900);
+    }
+    .pipe-node-sub {
+      font-size: 0.76rem;
+      color: var(--slate-600);
+      margin-top: 2px;
+    }
+    .pipe-arrow {
+      color: var(--slate-400);
+      font-weight: bold;
+      font-size: 1.2rem;
+      user-select: none;
+    }
+
+    /* Footer */
+    footer.app-footer {
+      background-color: #ffffff;
+      border-top: 1px solid var(--slate-200);
+      padding: 20px 32px;
+      margin-top: 40px;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--slate-600);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      header.app-header {
+        padding: 16px 20px;
+      }
+      .header-titles h1 {
+        font-size: 1.35rem;
+      }
+      nav.app-nav {
+        padding: 0 16px;
+      }
+      .nav-tab {
+        padding: 12px 14px;
+        font-size: 0.85rem;
+      }
+      main.content-area {
+        padding: 0 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Permanent Honesty Banner -->
+  <div class="honesty-banner">
+    <span>&#9888;</span> <strong>SIMULATED DEMO</strong> &mdash; runs in your browser. Real jobs were run on IBM z/OS.
+  </div>
+
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-top">
+      <div class="header-titles">
+        <h1>
+          <span>&#128187;</span> Hotel Reservation and Billing System (HRBS)
+        </h1>
+        <div class="subtitle">Mainframe Technology (ID3002) (PEC-I) | AY 2026-27 Sem-1 Batch Application</div>
+      </div>
+      <div class="header-badges">
+        <span class="college-tag">BRACT's Vishwakarma Institute of Technology (VIT), Pune</span>
+        <span class="meta-tag">Department of Computer Engineering</span>
+      </div>
+    </div>
+    <div class="student-info-strip">
+      <div><strong>Student Name:</strong> <span class="student-placeholder">____________________</span></div>
+      <div><strong>PRN:</strong> <span class="student-placeholder">____________________</span></div>
+      <div><strong>Roll No:</strong> <span class="student-placeholder">______</span></div>
+      <div><strong>Faculty Mentor:</strong> <span>Mrs. Madhura Sanap</span></div>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="app-nav">
+    <button class="nav-tab active" onclick="switchTab('overview')">&#127968; Overview</button>
+    <button class="nav-tab" onclick="switchTab('architecture')">&#128736; Architecture</button>
+    <button class="nav-tab" onclick="switchTab('assign1')">&#9989; Assignment 1 (SORT) <span class="badge badge-done">DONE</span></button>
+    <button class="nav-tab" onclick="switchTab('assign2')">&#9989; Assignment 2 (COBOL Match) <span class="badge badge-done">DONE</span></button>
+    <button class="nav-tab" onclick="switchTab('databrowser')">&#128269; Data Browser & Ruler</button>
+    <button class="nav-tab" onclick="switchTab('roadmap')">&#9203; Roadmap & Preview <span class="badge badge-planned">PLANNED</span></button>
+    <button class="nav-tab" onclick="switchTab('timeline')">&#128197; Progress & Timeline</button>
+  </nav>
+
+  <!-- Main Content Area -->
+  <main class="content-area">
+
+    <!-- ================================================================= -->
+    <!-- TAB 1: OVERVIEW                                                   -->
+    <!-- ================================================================= -->
+    <div id="pane-overview" class="tab-pane active">
+      <div class="card">
+        <div class="card-header">
+          <h2><span>&#127976;</span> Project Overview & Domain Problem</h2>
+          <span class="badge badge-done">Mid-Sem Status: 50% Complete</span>
+        </div>
+        <p style="font-size: 1rem; color: var(--slate-700); margin-bottom: 16px;">
+          The <strong>Hotel Reservation and Billing System (HRBS)</strong> is an enterprise batch processing mainframe application developed for the subject <em>Mainframe Technology (ID3002)</em>. The system manages large-volume hospitality bookings, verifies reservation data integrity, reconciles bookings with electronic bank payments, computes tiered Goods and Services Tax (GST), and maintains structured audit logs and database records.
+        </p>
+
+        <div class="grid-2">
+          <div style="background: #f8fafc; border: 1px solid var(--slate-200); border-radius: 6px; padding: 18px;">
+            <h3 style="color: #991b1b; font-size: 1rem; margin-bottom: 8px;">&#9888; The Hospitality Business Problem</h3>
+            <ul style="padding-left: 20px; font-size: 0.88rem; color: var(--slate-700); line-height: 1.6;">
+              <li><strong>Duplicate Bookings:</strong> Simultaneous front-desk entries cause double-booked rooms.</li>
+              <li><strong>Unreconciled Payments:</strong> Guest reservations become separated from credit/UPI bank payment records.</li>
+              <li><strong>Calculation Errors:</strong> Manual tax and service rate calculations create month-end accounting discrepancies.</li>
+              <li><strong>Batch Scale:</strong> Hotels process thousands of check-ins and check-outs daily, demanding strict data integrity.</li>
+            </ul>
+          </div>
+          <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 18px;">
+            <h3 style="color: #166534; font-size: 1rem; margin-bottom: 8px;">&#9989; Why Mainframe Solves It</h3>
+            <ul style="padding-left: 20px; font-size: 0.88rem; color: var(--slate-700); line-height: 1.6;">
+              <li><strong>High-Speed DFSORT:</strong> Rapid deduplication and sorting of fixed-block datasets.</li>
+              <li><strong>Enterprise COBOL:</strong> Hardware-accelerated decimal arithmetic (`COMP-3`) with zero rounding error.</li>
+              <li><strong>Transaction Integrity:</strong> Indexed VSAM (KSDS) random key updates and ACID-compliant DB2 relational tables.</li>
+              <li><strong>Automated JCL Batch:</strong> Scheduled batch cycles with conditional step branching (`COND` / `IF-ELSE`).</li>
+            </ul>
+          </div>
+        </div>
+
+        <div style="margin-top: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <span style="font-weight: 700; font-size: 0.95rem; color: var(--navy-900);">Teacher's Mandatory Assignments: 2 of 4 Completed (50%)</span>
+            <span style="font-size: 0.85rem; color: var(--slate-600); font-weight: 600;">2 Done | 2 Planned</span>
+          </div>
+          <div class="progress-bar-container">
+            <div class="progress-bar-fill" style="width: 50%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Assignment Summary Cards -->
+      <div class="grid-2">
+        <div class="card" style="margin-bottom: 0;">
+          <div class="card-header">
+            <h3>Assignment 1: JCL SORT Dedupe & Sort</h3>
+            <span class="badge badge-done">DONE (CC 0000)</span>
+          </div>
+          <p style="font-size: 0.88rem; color: var(--slate-600); margin-bottom: 12px;">
+            Eliminated duplicate reservation keys using DFSORT <code>SORT FIELDS=(13,8,CH,A)</code> and <code>SUM FIELDS=NONE</code>.
+          </p>
+          <div style="font-size: 0.84rem; background: var(--slate-50); padding: 10px; border-radius: 4px; border: 1px solid var(--slate-200); margin-bottom: 14px;">
+            <strong>Result:</strong> 100 records read &rarr; 10 duplicates removed &rarr; <strong>90 unique records written</strong>.
+          </div>
+          <button class="btn btn-outline" style="width: 100%;" onclick="switchTab('assign1')">Open Assignment 1 Simulator &rarr;</button>
+        </div>
+
+        <div class="card" style="margin-bottom: 0;">
+          <div class="card-header">
+            <h3>Assignment 2: COBOL Two-File Match</h3>
+            <span class="badge badge-done">DONE (CC 0000)</span>
+          </div>
+          <p style="font-size: 0.88rem; color: var(--slate-600); margin-bottom: 12px;">
+            Reconciled 50 reservations against 50 payments in COBOL (<code>HRBSMTCH.cbl</code>) via an in-memory lookup table.
+          </p>
+          <div style="font-size: 0.84rem; background: var(--slate-50); padding: 10px; border-radius: 4px; border: 1px solid var(--slate-200); margin-bottom: 14px;">
+            <strong>Result:</strong> 50+50 records &rarr; <strong>35 matched pairs</strong> written to FILE3 (160 B) | 15 without payment.
+          </div>
+          <button class="btn btn-outline" style="width: 100%;" onclick="switchTab('assign2')">Open Assignment 2 Simulator &rarr;</button>
+        </div>
+
+        <div class="card" style="margin-bottom: 0;">
+          <div class="card-header">
+            <h3>Assignment 3: REXX Deduplication & Sort</h3>
+            <span class="badge badge-planned">PLANNED (Preview Ready)</span>
+          </div>
+          <p style="font-size: 0.88rem; color: var(--slate-600); margin-bottom: 12px;">
+            Deduplicate 120 invoice records and shell sort on keys 25–32 using associative stems under TSO/E REXX.
+          </p>
+          <div style="font-size: 0.84rem; background: #fffbeb; padding: 10px; border-radius: 4px; border: 1px solid #fde68a; margin-bottom: 14px;">
+            <strong>Expected:</strong> 120 records &rarr; 15 dups dropped &rarr; <strong>105 unique records</strong> (REXX RC 0).
+          </div>
+          <button class="btn btn-outline" style="width: 100%;" onclick="switchTab('roadmap')">View Planned Roadmap &rarr;</button>
+        </div>
+
+        <div class="card" style="margin-bottom: 0;">
+          <div class="card-header">
+            <h3>Assignment 4: Count Audit & Branching</h3>
+            <span class="badge badge-planned">PLANNED (Preview Ready)</span>
+          </div>
+          <p style="font-size: 0.88rem; color: var(--slate-600); margin-bottom: 12px;">
+            Sort descending with before/after count audit using ICETOOL <code>NOTEQUAL(1) RC4</code> and IF/ELSE branching.
+          </p>
+          <div style="font-size: 0.84rem; background: #fffbeb; padding: 10px; border-radius: 4px; border: 1px solid #fde68a; margin-bottom: 14px;">
+            <strong>Expected:</strong> PASS catalogs output (CC 0000); FAIL (STOPAFT=90) sets MAXCC=8 (CC 0008).
+          </div>
+          <button class="btn btn-outline" style="width: 100%;" onclick="switchTab('roadmap')">View Planned Roadmap &rarr;</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- TAB 2: ARCHITECTURE                                               -->
+    <!-- ================================================================= -->
+    <div id="pane-architecture" class="tab-pane">
+      <div class="card">
+        <div class="card-header">
+          <h2><span>&#128736;</span> End-to-End Batch Mainframe Pipeline</h2>
+          <div>
+            <span class="badge badge-done" style="margin-right: 6px;">&#9679; Done on z/OS</span>
+            <span class="badge badge-planned">&#9679; Planned for 2nd Half</span>
+          </div>
+        </div>
+        <p style="font-size: 0.9rem; color: var(--slate-600); margin-bottom: 18px;">
+          Click on any component in the pipeline below to inspect its purpose, input datasets, output datasets, and mainframe implementation details:
+        </p>
+
+        <!-- Pipeline Diagram -->
+        <div class="pipeline-diagram">
+          <div class="pipe-row">
+            <div class="pipe-node node-done active-node" onclick="inspectNode('ingest')">
+              <div class="pipe-node-title">1. Raw Datasets</div>
+              <div class="pipe-node-sub">PS Files (80B &amp; 100B)</div>
+              <span class="badge badge-done" style="margin-top: 6px;">DONE</span>
+            </div>
+            <div class="pipe-arrow">&rarr;</div>
+            <div class="pipe-node node-done" onclick="inspectNode('sort')">
+              <div class="pipe-node-title">2. JCL DFSORT</div>
+              <div class="pipe-node-sub">JOB01 (Dedupe cols 13-20)</div>
+              <span class="badge badge-done" style="margin-top: 6px;">DONE</span>
+            </div>
+            <div class="pipe-arrow">&rarr;</div>
+            <div class="pipe-node node-done" onclick="inspectNode('match')">
+              <div class="pipe-node-title">3. COBOL Match</div>
+              <div class="pipe-node-sub">JOB02 (HRBSMTCH 160B)</div>
+              <span class="badge badge-done" style="margin-top: 6px;">DONE</span>
+            </div>
+            <div class="pipe-arrow">&rarr;</div>
+            <div class="pipe-node node-planned" onclick="inspectNode('validate')">
+              <div class="pipe-node-title">4. Validation</div>
+              <div class="pipe-node-sub">JOB07 (HRBSVAL Rules)</div>
+              <span class="badge badge-planned" style="margin-top: 6px;">PLANNED</span>
+            </div>
+          </div>
+
+          <div style="text-align: center; color: var(--slate-400); font-size: 1.2rem; margin: -6px 0;">&darr;</div>
+
+          <div class="pipe-row">
+            <div class="pipe-node node-planned" onclick="inspectNode('vsam')">
+              <div class="pipe-node-title">5. VSAM KSDS</div>
+              <div class="pipe-node-sub">JOB08/09 (HRBSUPD)</div>
+              <span class="badge badge-planned" style="margin-top: 6px;">PLANNED</span>
+            </div>
+            <div class="pipe-arrow">&rarr;</div>
+            <div class="pipe-node node-planned" onclick="inspectNode('billing')">
+              <div class="pipe-node-title">6. Billing Engine</div>
+              <div class="pipe-node-sub">JOB06 (HRBSBIL GST)</div>
+              <span class="badge badge-planned" style="margin-top: 6px;">PLANNED</span>
+            </div>
+            <div class="pipe-arrow">&rarr;</div>
+            <div class="pipe-node node-planned" onclick="inspectNode('rexx')">
+              <div class="pipe-node-title">7. REXX Clean-up</div>
+              <div class="pipe-node-sub">JOB03 (HRBSDEDP)</div>
+              <span class="badge badge-planned" style="margin-top: 6px;">PLANNED</span>
+            </div>
+            <div class="pipe-arrow">&rarr;</div>
+            <div class="pipe-node node-planned" onclick="inspectNode('audit')">
+              <div class="pipe-node-title">8. Count Audit</div>
+              <div class="pipe-node-sub">JOB04 (ICETOOL PASS/FAIL)</div>
+              <span class="badge badge-planned" style="margin-top: 6px;">PLANNED</span>
+            </div>
+          </div>
+
+          <div style="text-align: center; color: var(--slate-400); font-size: 1.2rem; margin: -6px 0;">&darr;</div>
+
+          <div class="pipe-row">
+            <div class="pipe-node node-planned" onclick="inspectNode('db2')">
+              <div class="pipe-node-title">9. Relational DB2</div>
+              <div class="pipe-node-sub">JOB05/12 (HRBSDB2 SQL)</div>
+              <span class="badge badge-planned" style="margin-top: 6px;">PLANNED</span>
+            </div>
+            <div class="pipe-arrow">&rarr;</div>
+            <div class="pipe-node node-planned" onclick="inspectNode('report')">
+              <div class="pipe-node-title">10. 132-Col Report</div>
+              <div class="pipe-node-sub">JOB11 (HRBSRPT Control Breaks)</div>
+              <span class="badge badge-planned" style="margin-top: 6px;">PLANNED</span>
+            </div>
+            <div class="pipe-arrow">&rarr;</div>
+            <div class="pipe-node node-planned" onclick="inspectNode('cycle')">
+              <div class="pipe-node-title">11. Master Cycle</div>
+              <div class="pipe-node-sub">JOB10 (Full Batch Pipeline)</div>
+              <span class="badge badge-planned" style="margin-top: 6px;">PLANNED</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dynamic Node Inspector Box -->
+        <div id="node-inspector" style="background: var(--slate-50); border: 1px solid var(--slate-200); border-radius: 6px; padding: 20px; margin-top: 20px;">
+          <!-- Content populated via JavaScript -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- TAB 3: ASSIGNMENT 1 - SORT (DONE)                                 -->
+    <!-- ================================================================= -->
+    <div id="pane-assign1" class="tab-pane">
+      <div class="card">
+        <div class="card-header">
+          <h2><span>&#9989;</span> Assignment 1: JCL SORT Deduplication &amp; Ascending Sort</h2>
+          <span class="badge badge-done">COMPLETED ON z/OS (CC 0000)</span>
+        </div>
+        <p style="font-size: 0.92rem; color: var(--slate-700); margin-bottom: 14px;">
+          This assignment removes duplicate reservation records and orders bookings by primary key using IBM DFSORT. The raw intake contains 100 records $	imes$ 80 bytes with 10 duplicate keys.
+        </p>
+
+        <!-- JCL Statements -->
+        <div style="margin-bottom: 18px;">
+          <div style="font-size: 0.82rem; font-weight: 700; color: var(--slate-600); margin-bottom: 6px; text-transform: uppercase;">
+            JCL Control Card (from jcl/JOB01_SORT_DEDUP.jcl):
+          </div>
+          <div class="code-box">
+<span class="code-keyword">//SORT1</span>    EXEC PGM=SORT
+<span class="code-keyword">//SYSOUT</span>   DD SYSOUT=*
+<span class="code-keyword">//SORTIN</span>   DD DSN=&amp;SYSUID..HRBS.RESERV.INPUT,DISP=SHR
+<span class="code-keyword">//SORTOUT</span>  DD DSN=&amp;SYSUID..HRBS.RESERV.SORTED,DISP=(NEW,CATLG,DELETE),
+<span class="code-keyword">//</span>            SPACE=(TRK,(5,5),RLSE),DCB=(RECFM=FB,LRECL=80,BLKSIZE=0)
+<span class="code-keyword">//SYSIN</span>    DD *
+  <span class="code-keyword">SORT</span> FIELDS=(<span class="code-number">13</span>,<span class="code-number">8</span>,<span class="code-string">CH</span>,<span class="code-string">A</span>)     <span class="code-comment">/* Start col 13, length 8 bytes, Character, Ascending */</span>
+  <span class="code-keyword">SUM</span>  FIELDS=NONE             <span class="code-comment">/* Eliminates duplicate records on the sort key */</span>
+<span class="code-keyword">/*</span>
+          </div>
+        </div>
+
+        <!-- Simulation Control Bar -->
+        <div style="background: var(--slate-100); padding: 14px 18px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 18px;">
+          <div>
+            <div style="font-weight: 700; font-size: 0.95rem; color: var(--navy-900);">Raw Input Dataset: 100 records &times; 80 bytes</div>
+            <div style="font-size: 0.8rem; color: var(--slate-600);">Notice the 10 duplicate keys flagged below in the raw data table.</div>
+          </div>
+          <button class="btn btn-primary" onclick="runSimulationA1()">&#9654; Run Browser Simulation (DFSORT)</button>
+        </div>
+
+        <!-- Simulation Output Box (Initially Hidden until clicked) -->
+        <div id="sim-output-a1" style="display: none; margin-bottom: 24px;">
+          <div class="notice-box notice-green">
+            <span>&#9989;</span>
+            <div><strong>Browser simulation of the same logic; real z/OS run: CC 0000, 90 records.</strong></div>
+          </div>
+          <div class="grid-3">
+            <div class="kpi-card">
+              <span class="kpi-title">Records In (SORTIN)</span>
+              <span class="kpi-value" id="kpi-a1-in">100</span>
+              <span class="kpi-desc">Raw input bookings</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-title">Duplicates Dropped</span>
+              <span class="kpi-value" style="color: #991b1b;" id="kpi-a1-dup">10</span>
+              <span class="kpi-desc">Via SUM FIELDS=NONE</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-title">Records Out (SORTOUT)</span>
+              <span class="kpi-value" style="color: #166534;" id="kpi-a1-out">90</span>
+              <span class="kpi-desc">Ascending sorted by ID</span>
+            </div>
+          </div>
+
+          <div class="toolbar">
+            <span style="font-weight: 700; font-size: 0.92rem;">Output Dataset: &lt;userid&gt;.HRBS.RESERV.SORTED (90 Records)</span>
+            <input type="text" class="search-input" id="search-a1-out" placeholder="Filter sorted records..." oninput="filterTableA1Out()">
+          </div>
+          <div class="table-container">
+            <table class="data-table" id="table-a1-out">
+              <thead>
+                <tr>
+                  <th style="width: 60px;">#</th>
+                  <th>Reservation ID (Cols 13-20)</th>
+                  <th>Guest Name (Cols 21-40)</th>
+                  <th>Room (Cols 41-44)</th>
+                  <th>Type (Cols 45-48)</th>
+                  <th>Rate (INR)</th>
+                  <th>Check-In</th>
+                  <th>Check-Out</th>
+                  <th>Raw 80-Byte Record</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-a1-out">
+                <!-- Injected via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Raw Input Table -->
+        <div class="toolbar">
+          <span style="font-weight: 700; font-size: 0.92rem;">Input Dataset: &lt;userid&gt;.HRBS.RESERV.INPUT (100 Raw Records)</span>
+          <span style="font-size: 0.82rem; color: #991b1b; font-weight: 600;">10 Duplicates Highlighted in Red</span>
+        </div>
+        <div class="table-container">
+          <table class="data-table" id="table-a1-raw">
+            <thead>
+              <tr>
+                <th style="width: 50px;">#</th>
+                <th>Status</th>
+                <th>Res ID (Cols 13-20)</th>
+                <th>Guest Name</th>
+                <th>Room</th>
+                <th>Type</th>
+                <th>Check-In</th>
+                <th>Check-Out</th>
+                <th>Raw Fixed Record (80 Bytes)</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-a1-raw">
+              <!-- Populated via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- TAB 4: ASSIGNMENT 2 - COBOL MATCH (DONE)                          -->
+    <!-- ================================================================= -->
+    <div id="pane-assign2" class="tab-pane">
+      <div class="card">
+        <div class="card-header">
+          <h2><span>&#9989;</span> Assignment 2: COBOL Two-File Key Match (HRBSMTCH)</h2>
+          <span class="badge badge-done">COMPLETED ON z/OS (CC 0000)</span>
+        </div>
+        <p style="font-size: 0.92rem; color: var(--slate-700); margin-bottom: 14px;">
+          Reconciles reservation intake against electronic bank payments. Program <code>HRBSMTCH.cbl</code> reads 50 reservations (FILE1) and 50 payment receipts (FILE2), matches them on Reservation ID, and writes matched 160-byte composite records to FILE3.
+        </p>
+
+        <!-- Simulation Action -->
+        <div style="background: var(--slate-100); padding: 14px 18px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 18px;">
+          <div>
+            <div style="font-weight: 700; font-size: 0.95rem; color: var(--navy-900);">Inputs: FILE1 (50 reservations) &amp; FILE2 (50 payments)</div>
+            <div style="font-size: 0.8rem; color: var(--slate-600);">In-memory array lookup eliminates the requirement to pre-sort FILE1.</div>
+          </div>
+          <button class="btn btn-primary" onclick="runSimulationA2()">&#9654; Run Browser Simulation (COBOL Match)</button>
+        </div>
+
+        <!-- Simulation Output Box -->
+        <div id="sim-output-a2" style="display: none; margin-bottom: 24px;">
+          <div class="notice-box notice-green">
+            <span>&#9989;</span>
+            <div><strong>Browser simulation of the same logic; real z/OS run: CC 0000, 35 matched records.</strong></div>
+          </div>
+
+          <div class="grid-4">
+            <div class="kpi-card">
+              <span class="kpi-title">FILE1 Records Read</span>
+              <span class="kpi-value">50</span>
+              <span class="kpi-desc">Reservations input</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-title">FILE2 Records Loaded</span>
+              <span class="kpi-value">50</span>
+              <span class="kpi-desc">Payments in table</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-title">Matched Pairs (FILE3)</span>
+              <span class="kpi-value" style="color: #166534;">35</span>
+              <span class="kpi-desc">160-byte paired records</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-title">Unmatched Bookings</span>
+              <span class="kpi-value" style="color: #991b1b;">15</span>
+              <span class="kpi-desc">Pending payment</span>
+            </div>
+          </div>
+
+          <!-- Sub-tabs for Results -->
+          <div style="display: flex; gap: 8px; border-bottom: 2px solid var(--slate-200); margin-bottom: 12px;">
+            <button class="btn btn-outline" id="btn-a2-matched" onclick="showA2SubTab('matched')" style="border-bottom: 2px solid var(--blue-600); font-weight: 700;">Matched Pairs (35 Recs - 160B)</button>
+            <button class="btn btn-outline" id="btn-a2-unmatched-resv" onclick="showA2SubTab('unmatched-resv')">Unmatched Reservations (15 Recs)</button>
+            <button class="btn btn-outline" id="btn-a2-unmatched-pay" onclick="showA2SubTab('unmatched-pay')">Unmatched Payments (15 Recs)</button>
+          </div>
+
+          <div id="a2-sub-matched">
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Matched Key</th>
+                    <th>Reservation Guest</th>
+                    <th>Room</th>
+                    <th>Payment ID</th>
+                    <th>Pay Mode</th>
+                    <th>Amount (INR)</th>
+                    <th>Payer Name</th>
+                    <th>Full 160-Byte Record (Cols 1-80 Resv + Cols 81-160 Pay)</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-a2-matched"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="a2-sub-unmatched-resv" style="display: none;">
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Reservation ID</th>
+                    <th>Guest Name</th>
+                    <th>Room</th>
+                    <th>Rate</th>
+                    <th>Check-In</th>
+                    <th>Status</th>
+                    <th>Raw Record (80 Bytes)</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-a2-unmatched-resv"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="a2-sub-unmatched-pay" style="display: none;">
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Payment ID</th>
+                    <th>Target Res ID</th>
+                    <th>Mode</th>
+                    <th>Amount (INR)</th>
+                    <th>Payer Name</th>
+                    <th>Raw Record (80 Bytes)</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-a2-unmatched-pay"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Read-Only COBOL Code Viewer -->
+        <div style="margin-top: 24px;">
+          <div class="card-header">
+            <h3><span>&#128196;</span> Key Program Logic: cobol/HRBSMTCH.cbl</h3>
+          </div>
+          <div class="code-box">
+<span class="code-comment">       *---- LOAD PAYMENTS INTO IN-MEMORY LOOKUP TABLE -----------------*</span>
+       <span class="code-keyword">2000-LOAD-PAYMENTS.</span>
+           PERFORM 2100-READ-PAY
+           PERFORM UNTIL END-OF-PAY
+              ADD 1 TO WS-PAY-CNT
+              IF WS-PAY-CNT > 100
+                 DISPLAY <span class="code-string">'PAYMENT TABLE OVERFLOW - INCREASE OCCURS'</span>
+                 MOVE 16 TO RETURN-CODE
+                 STOP RUN
+              END-IF
+              MOVE PAY-RES-ID TO PT-KEY (WS-PAY-CNT)   <span class="code-comment">*> Key at cols 21-28</span>
+              MOVE PAY-REC    TO PT-REC (WS-PAY-CNT)   <span class="code-comment">*> 80-byte raw record</span>
+              PERFORM 2100-READ-PAY
+           END-PERFORM.
+
+<span class="code-comment">       *---- SEQUENTIAL SEARCH &amp; COMPOSITE WRITE ------------------------*</span>
+       <span class="code-keyword">3000-MATCH-RESERVATIONS.</span>
+           PERFORM 3100-READ-RESV
+           PERFORM UNTIL END-OF-RESV
+              ADD 1 TO WS-RESV-CNT
+              MOVE <span class="code-string">'N'</span> TO WS-FOUND
+              PERFORM VARYING WS-IX FROM 1 BY 1
+                      UNTIL WS-IX > WS-PAY-CNT OR FOUND-MATCH
+                 IF PT-KEY (WS-IX) = RV-ID             <span class="code-comment">*> Check reservation key</span>
+                    SET FOUND-MATCH TO TRUE
+                    MOVE RESV-REC       TO OUT-RESV    <span class="code-comment">*> First 80 bytes</span>
+                    MOVE PT-REC (WS-IX) TO OUT-PAY     <span class="code-comment">*> Second 80 bytes</span>
+                    WRITE OUT-REC                      <span class="code-comment">*> Output 160 bytes</span>
+                    ADD 1 TO WS-MATCH-CNT
+                 END-IF
+              END-PERFORM
+              IF NOT FOUND-MATCH
+                 ADD 1 TO WS-NOMATCH-CNT
+              END-IF
+              PERFORM 3100-READ-RESV
+           END-PERFORM.
+          </div>
+          <div style="font-size: 0.85rem; color: var(--slate-600); margin-top: 8px;">
+            <strong>Plain-English Summary for Viva:</strong> Rather than forcing both files to be sorted in identical key order before execution, the COBOL program loads all 50 payment receipts into a 100-entry internal table. It then streams the reservations sequentially and performs table lookups. This achieves $O(M 	imes N)$ execution in milliseconds while avoiding external sort passes.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- TAB 5: DATA BROWSER & COLUMN RULER                                -->
+    <!-- ================================================================= -->
+    <div id="pane-databrowser" class="tab-pane">
+      <div class="card">
+        <div class="card-header">
+          <h2><span>&#128269;</span> Mainframe Fixed-Block Record &amp; Column Ruler Browser</h2>
+          <span class="badge badge-code">LRECL = 80 BYTES | RECFM = FB</span>
+        </div>
+        <p style="font-size: 0.9rem; color: var(--slate-600); margin-bottom: 14px;">
+          Click any row in the table below to inspect its exact 80-column EBCDIC layout with the interactive ISPF column ruler. Notice how Columns 13–20 store the 8-byte Primary Key.
+        </p>
+
+        <!-- Interactive Ruler Display Card -->
+        <div id="selected-record-box" style="background: var(--slate-100); border: 1px solid var(--slate-200); border-radius: 6px; padding: 16px; margin-bottom: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <strong style="color: var(--navy-900); font-size: 0.95rem;">Selected Record: <span id="ruler-sel-id" style="color: var(--blue-600); font-family: var(--mono);">RS006881</span></strong>
+            <span class="badge badge-code">ISPF View Mode Emulation</span>
+          </div>
+
+          <div class="ruler-container">
+            <div class="ruler-digits">         1         2         3         4         5         6         7         8</div>
+            <div class="ruler-ticks">....+....0....+....0....+....0....+....0....+....0....+....0....+....0....+....0</div>
+            <div class="ruler-data" id="ruler-raw-text">RSVPUN261002RS006881KARAN MEHTA         0381STE 202611072026110803008800C       </div>
+            <div class="ruler-pointer">            ^^^^^^^^ (Cols 13-20: PRIMARY KEY = 'RS006881')</div>
+          </div>
+
+          <div class="grid-4" id="ruler-fields" style="margin-bottom: 0; margin-top: 10px;">
+            <!-- Fields populated via JS -->
+          </div>
+        </div>
+
+        <!-- Filter Toolbar -->
+        <div class="toolbar">
+          <input type="text" class="search-input" id="search-browser" placeholder="Search by name, ID, room..." oninput="renderDataBrowser()">
+          <div style="display: flex; gap: 8px;">
+            <select class="select-input" id="filter-rtype" onchange="renderDataBrowser()">
+              <option value="ALL">All Room Types</option>
+              <option value="STD">Standard (STD)</option>
+              <option value="DLX">Deluxe (DLX)</option>
+              <option value="STE">Suite (STE)</option>
+            </select>
+            <select class="select-input" id="filter-status" onchange="renderDataBrowser()">
+              <option value="ALL">All Statuses</option>
+              <option value="C">Confirmed (C)</option>
+              <option value="X">Cancelled (X)</option>
+              <option value="O">Checked-Out (O)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-container" style="max-height: 440px;">
+          <table class="data-table" id="browser-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Res ID (13-20)</th>
+                <th>Guest Name (21-40)</th>
+                <th>Room (41-44)</th>
+                <th>Type (45-48)</th>
+                <th>Rate (67-72)</th>
+                <th>Check-In (49-56)</th>
+                <th>Check-Out (57-64)</th>
+                <th>Guests</th>
+                <th>Status</th>
+                <th>BkDate</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-browser">
+              <!-- Populated via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- TAB 6: ROADMAP & FUTURE WORK (PLANNED)                            -->
+    <!-- ================================================================= -->
+    <div id="pane-roadmap" class="tab-pane">
+      <div class="notice-box notice-amber" style="margin-top: 0; margin-bottom: 24px;">
+        <span style="font-size: 1.2rem;">&#9888;</span>
+        <div>
+          <strong>Planned for second half &mdash; preview only, not yet run on z/OS.</strong><br>
+          <span style="font-size: 0.85rem;">The items below demonstrate the scheduled enterprise components that will be deployed to the college mainframe in Phase 2. Client-side browser previews are available to simulate the underlying algorithms.</span>
+        </div>
+      </div>
+
+      <div class="grid-2">
+
+        <!-- Card: Assignment 3 -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Assignment 3: REXX Invoice Deduplication</h3>
+            <span class="badge badge-planned">PLANNED</span>
+          </div>
+          <p style="font-size: 0.88rem; color: var(--slate-600); margin-bottom: 12px;">
+            TSO/E REXX procedure (<code>HRBSDEDP.rexx</code>) reads 120 invoices $	imes$ 100 bytes, filters 15 duplicate keys (cols 25–32) using an associative stem, and sorts the remaining 105 invoices via Shell Sort.
+          </p>
+          <div style="font-size: 0.82rem; background: var(--slate-50); padding: 8px 12px; border-radius: 4px; margin-bottom: 14px; border: 1px solid var(--slate-200);">
+            <strong>Expected z/OS Result:</strong> 120 in &rarr; 105 out (REXX RC 0)
+          </div>
+          <button class="btn btn-amber" style="width: 100%;" onclick="togglePreviewA3()">&#9654; Preview Simulation (REXX Logic)</button>
+
+          <div id="preview-a3-box" style="display: none; margin-top: 14px;">
+            <div class="badge badge-planned" style="margin-bottom: 6px;">PREVIEW SIMULATION - not yet run on z/OS</div>
+            <div style="font-size: 0.84rem; margin-bottom: 6px;">
+              Records Read: <strong>120</strong> | Duplicates Dropped: <strong>15</strong> | Output: <strong>105 Unique Sorted</strong>
+            </div>
+            <div class="table-container" style="max-height: 220px;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Invoice ID (25-32)</th>
+                    <th>Reservation ID</th>
+                    <th>Guest Name</th>
+                    <th>Total (INR)</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-a3-preview"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card: Assignment 4 -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Assignment 4: Descending Copy &amp; Count Audit</h3>
+            <span class="badge badge-planned">PLANNED</span>
+          </div>
+          <p style="font-size: 0.88rem; color: var(--slate-600); margin-bottom: 12px;">
+            DFSORT copies reservations in descending order while ICETOOL evaluates before/after record counts using <code>NOTEQUAL(1) RC4</code> and IF/ELSE branching.
+          </p>
+          <div style="font-size: 0.82rem; background: var(--slate-50); padding: 8px 12px; border-radius: 4px; margin-bottom: 14px; border: 1px solid var(--slate-200);">
+            <strong>Expected:</strong> PASS: 100=100 &rarr; Keep output (CC 0000) | FAIL: 100&ne;90 &rarr; MAXCC=8 (CC 0008)
+          </div>
+          <button class="btn btn-amber" style="width: 100%;" onclick="togglePreviewA4()">&#9654; Interactive PASS / FAIL Audit Simulation</button>
+
+          <div id="preview-a4-box" style="display: none; margin-top: 14px;">
+            <div class="badge badge-planned" style="margin-bottom: 8px;">PREVIEW SIMULATION - not yet run on z/OS</div>
+            <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+              <button class="btn btn-primary" id="btn-a4-pass" onclick="runA4Preview('PASS')" style="font-size: 0.8rem; padding: 6px 12px;">Test Scenario 1: PASS ($100 = 100$)</button>
+              <button class="btn btn-outline" id="btn-a4-fail" onclick="runA4Preview('FAIL')" style="font-size: 0.8rem; padding: 6px 12px;">Test Scenario 2: FAIL ($100 
+eq 90$)</button>
+            </div>
+            <div id="a4-audit-trace" style="background: #0f172a; color: #f8fafc; font-family: var(--mono); font-size: 0.8rem; padding: 12px; border-radius: 4px; line-height: 1.5;">
+              <!-- Filled via JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Card: Validation Engine -->
+        <div class="card">
+          <div class="card-header">
+            <h3>COBOL Validation Engine (HRBSVAL)</h3>
+            <span class="badge badge-planned">PLANNED</span>
+          </div>
+          <p style="font-size: 0.88rem; color: var(--slate-600); margin-bottom: 12px;">
+            Filters sorted reservations against 10 integrity rules (dates, room rates, calendar bounds). Writes 80-byte valid records and 120-byte reject records (RESERV.REJECT).
+          </p>
+          <div style="font-size: 0.82rem; background: var(--slate-50); padding: 8px 12px; border-radius: 4px; margin-bottom: 14px; border: 1px solid var(--slate-200);">
+            <strong>Expected:</strong> 90 clean records valid | 15 test errors routed to reject log
+          </div>
+          <button class="btn btn-outline" style="width: 100%;" onclick="showValidationRules()">&#128065; Preview 10 Business Rules Matrix</button>
+          <div id="val-rules-box" style="display: none; margin-top: 12px; font-size: 0.82rem; color: var(--slate-700);">
+            <ol style="padding-left: 18px; line-height: 1.6;">
+              <li>Record type must strictly equal 'RSV'.</li>
+              <li>Reservation ID must be 'RS' + 6 numeric digits.</li>
+              <li>Booking date must be valid YYMMDD.</li>
+              <li>Check-in date must be valid YYYYMMDD with leap year check.</li>
+              <li>Check-out date must be valid YYYYMMDD.</li>
+              <li>Check-out date must be strictly after Check-in date.</li>
+              <li>Room category must be 'STD ', 'DLX ', or 'STE '.</li>
+              <li>Guest count must be between 1 and 4 occupants.</li>
+              <li>Room rate must match tariff (STD=3500, DLX=5200, STE=8800).</li>
+              <li>Status must be Confirmed ('C'), Cancelled ('X'), or Out ('O').</li>
+            </ol>
+          </div>
+        </div>
+
+        <!-- Card: Extended Billing Engine -->
+        <div class="card">
+          <div class="card-header">
+            <h3>COBOL Billing Engine (HRBSBIL)</h3>
+            <span class="badge badge-planned">PLANNED</span>
+          </div>
+          <p style="font-size: 0.88rem; color: var(--slate-600); margin-bottom: 12px;">
+            Computes room nights using <code>FUNCTION INTEGER-OF-DATE</code>, 5% base service charge, extra service amenities, and tiered GST (5% if rate $\le$ 7500, else 18%).
+          </p>
+          <div style="font-size: 0.82rem; background: var(--slate-50); padding: 8px 12px; border-radius: 4px; margin-bottom: 14px; border: 1px solid var(--slate-200);">
+            <strong>Expected:</strong> 90 customer invoices generated to INVOICE.OUTPUT (100 B)
+          </div>
+          <button class="btn btn-amber" style="width: 100%;" onclick="toggleBillingCalculator()">&#128221; Interactive Billing Calculator</button>
+
+          <div id="billing-calc-box" style="display: none; margin-top: 14px; background: var(--slate-50); border: 1px solid var(--slate-200); border-radius: 6px; padding: 14px;">
+            <div class="badge badge-planned" style="margin-bottom: 8px;">PREVIEW SIMULATION - not yet run on z/OS</div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;">
+              <select class="select-input" id="calc-booking-sel" onchange="runBillingCalc()">
+                <option value="RS006881">KARAN MEHTA (Room 0381, STE, 8800 INR, 1 Night)</option>
+                <option value="RS007495">DIYA KHAN (Room 0494, STD, 3500 INR, 6 Nights)</option>
+                <option value="RS005235">RAHUL KHAN (Room 0467, DLX, 5200 INR, 4 Nights)</option>
+              </select>
+            </div>
+            <div id="calc-result" style="font-size: 0.85rem; line-height: 1.6; color: var(--navy-900);">
+              <!-- Populated via JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Card: VSAM KSDS -->
+        <div class="card">
+          <div class="card-header">
+            <h3>VSAM KSDS Master &amp; Random Updates</h3>
+            <span class="badge badge-planned">PLANNED</span>
+          </div>
+          <p style="font-size: 0.88rem; color: var(--slate-600); margin-bottom: 8px;">
+            IDCAMS cluster <code>RESERV.KSDS</code> (Keys 8 at offset 12). COBOL <code>HRBSUPD.cbl</code> performs random I-O (`ADD`, `CANCEL`, `CHECK-OUT`, `UPDATE`) with room double-booking detection.
+          </p>
+          <div style="font-size: 0.82rem; background: var(--slate-50); padding: 8px 12px; border-radius: 4px; border: 1px solid var(--slate-200);">
+            <strong>Expected:</strong> 90 records loaded via REPRO &rarr; 31 transactions processed (11 intentional test rejects audited).
+          </div>
+        </div>
+
+        <!-- Card: 132-Col Report -->
+        <div class="card">
+          <div class="card-header">
+            <h3>132-Column Management Billing Report</h3>
+            <span class="badge badge-planned">PLANNED</span>
+          </div>
+          <p style="font-size: 0.88rem; color: var(--slate-600); margin-bottom: 8px;">
+            Program <code>HRBSRPT.cbl</code> creates printed management reports with 55-line pagination, date headers, room-type control breaks (`STD`, `DLX`, `STE`), subtotals, and grand totals.
+          </p>
+          <div style="font-size: 0.82rem; background: var(--slate-50); padding: 8px 12px; border-radius: 4px; border: 1px solid var(--slate-200);">
+            <strong>Expected:</strong> Output to BILLING.REPORT / REPORT.GDG(+1) (132 B)
+          </div>
+        </div>
+
+        <!-- Card: DB2 Relational -->
+        <div class="card">
+          <div class="card-header">
+            <h3>DB2 Relational Tables &amp; Embedded SQL</h3>
+            <span class="badge badge-planned">PLANNED</span>
+          </div>
+          <p style="font-size: 0.88rem; color: var(--slate-600); margin-bottom: 8px;">
+            Deploy 5 relational tables via DSNTEP2. Embedded SQL program <code>HRBSDB2.cbl</code> batch loads reservations and bills with <code>SQLCODE -803</code> duplicate handling and queries unpaid bills via cursor <code>C_UNPAID</code>.
+          </p>
+          <div style="font-size: 0.82rem; background: var(--slate-50); padding: 8px 12px; border-radius: 4px; border: 1px solid var(--slate-200);">
+            <strong>Expected:</strong> 90 reservations inserted, 88 bills inserted (2 duplicate keys handled), 5 unpaid accounts reported.
+          </div>
+        </div>
+
+        <!-- Card: Master Batch Cycle -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Master Automated Batch Cycle (JOB10)</h3>
+            <span class="badge badge-planned">PLANNED</span>
+          </div>
+          <p style="font-size: 0.88rem; color: var(--slate-600); margin-bottom: 8px;">
+            Unified 9-step production batch cycle (<code>JOB10_HRBS_BATCH_CYCLE.jcl</code>) orchestrating DFSORT, validation, VSAM updates, billing to GDG(+1), reporting, and DB2 loads with COND checks.
+          </p>
+          <div style="font-size: 0.82rem; background: var(--slate-50); padding: 8px 12px; border-radius: 4px; border: 1px solid var(--slate-200);">
+            <strong>Expected:</strong> Synchronized end-to-end execution with return codes &le; 0004.
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- TAB 7: PROGRESS & TIMELINE                                        -->
+    <!-- ================================================================= -->
+    <div id="pane-timeline" class="tab-pane">
+      <div class="card">
+        <div class="card-header">
+          <h2><span>&#128197;</span> Project Milestones &amp; Academic Timeline</h2>
+          <span class="badge badge-done">Mid-Sem Review Ready</span>
+        </div>
+        <p style="font-size: 0.9rem; color: var(--slate-600); margin-bottom: 20px;">
+          The HRBS mainframe project is structured into two academic phases. All mid-semester requirements are fully completed and verified:
+        </p>
+
+        <div style="border-left: 3px solid var(--blue-600); padding-left: 20px; margin-left: 10px;">
+
+          <!-- Milestone 1 -->
+          <div style="margin-bottom: 24px; position: relative;">
+            <div style="position: absolute; left: -28px; top: 0; width: 14px; height: 14px; border-radius: 50%; background: var(--green-600); border: 2px solid #ffffff;"></div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+              <h3 style="font-size: 1.05rem; color: var(--navy-900);">Phase 1: Environment &amp; Dataset Setup</h3>
+              <span class="badge badge-done">COMPLETED</span>
+            </div>
+            <div style="font-size: 0.85rem; color: var(--slate-600);">
+              Allocated partitioned datasets (<code>HRBS.COBOL</code>, <code>HRBS.REXX</code>, <code>HRBS.LOAD</code>) via ALLOCATE.jcl and provisioned test data (RESERV, FILE1, FILE2, INVOICE) conforming to strict EBCDIC 80-byte and 100-byte layouts.
+            </div>
+          </div>
+
+          <!-- Milestone 2 -->
+          <div style="margin-bottom: 24px; position: relative;">
+            <div style="position: absolute; left: -28px; top: 0; width: 14px; height: 14px; border-radius: 50%; background: var(--green-600); border: 2px solid #ffffff;"></div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+              <h3 style="font-size: 1.05rem; color: var(--navy-900);">Phase 1: Assignment 1 (JCL SORT Deduplication)</h3>
+              <span class="badge badge-done">COMPLETED (CC 0000)</span>
+            </div>
+            <div style="font-size: 0.85rem; color: var(--slate-600);">
+              Executed DFSORT <code>SORT FIELDS=(13,8,CH,A)</code> with <code>SUM FIELDS=NONE</code> on <code>RESERV.INPUT</code>. Verified 10 duplicate keys eliminated, producing 90 unique ascending records in <code>RESERV.SORTED</code>.
+            </div>
+          </div>
+
+          <!-- Milestone 3 -->
+          <div style="margin-bottom: 24px; position: relative;">
+            <div style="position: absolute; left: -28px; top: 0; width: 14px; height: 14px; border-radius: 50%; background: var(--green-600); border: 2px solid #ffffff;"></div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+              <h3 style="font-size: 1.05rem; color: var(--navy-900);">Phase 1: Assignment 2 (COBOL Two-File Key Match)</h3>
+              <span class="badge badge-done">COMPLETED (CC 0000)</span>
+            </div>
+            <div style="font-size: 0.85rem; color: var(--slate-600);">
+              Compiled and executed <code>HRBSMTCH.cbl</code> under <code>IGYWCL</code>. Matched 50 reservations with 50 bank payments, writing exactly 35 matched pairs (160 bytes) to <code>FILE3</code>.
+            </div>
+          </div>
+
+          <!-- Milestone 4 (Mid-Sem Gateway) -->
+          <div style="margin-bottom: 24px; background: #f0fdf4; border: 1px dashed var(--green-600); padding: 12px 16px; border-radius: 6px;">
+            <strong style="color: var(--green-800); font-size: 0.92rem;">&#127891; Mid-Semester Evaluation Gateway: 100% of Target Completed</strong>
+            <p style="font-size: 0.82rem; color: var(--slate-700); margin-top: 2px;">
+              The two foundational teacher assignments are operational, tested, and ready for viva demonstration.
+            </p>
+          </div>
+
+          <!-- Milestone 5 -->
+          <div style="margin-bottom: 24px; position: relative;">
+            <div style="position: absolute; left: -28px; top: 0; width: 14px; height: 14px; border-radius: 50%; background: var(--amber-500); border: 2px solid #ffffff;"></div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+              <h3 style="font-size: 1.05rem; color: var(--navy-900);">Phase 2: Assignment 3 (REXX Dedupe &amp; Shell Sort)</h3>
+              <span class="badge badge-planned">PLANNED FOR 2ND HALF</span>
+            </div>
+            <div style="font-size: 0.85rem; color: var(--slate-600);">
+              Execute <code>HRBSDEDP.rexx</code> under batch <code>IKJEFT01</code> to deduplicate 120 invoices into 105 sorted records.
+            </div>
+          </div>
+
+          <!-- Milestone 6 -->
+          <div style="margin-bottom: 24px; position: relative;">
+            <div style="position: absolute; left: -28px; top: 0; width: 14px; height: 14px; border-radius: 50%; background: var(--amber-500); border: 2px solid #ffffff;"></div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+              <h3 style="font-size: 1.05rem; color: var(--navy-900);">Phase 2: Assignment 4 (Count Audit PASS &amp; FAIL)</h3>
+              <span class="badge badge-planned">PLANNED FOR 2ND HALF</span>
+            </div>
+            <div style="font-size: 0.85rem; color: var(--slate-600);">
+              Execute <code>JOB04P</code> (PASS, CC 0000) and <code>JOB04F</code> (FAIL via STOPAFT=90, CC 0008) demonstrating automated count reconciliation.
+            </div>
+          </div>
+
+          <!-- Milestone 7 -->
+          <div style="margin-bottom: 10px; position: relative;">
+            <div style="position: absolute; left: -28px; top: 0; width: 14px; height: 14px; border-radius: 50%; background: var(--amber-500); border: 2px solid #ffffff;"></div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+              <h3 style="font-size: 1.05rem; color: var(--navy-900);">Phase 2: Enterprise Extensions (VSAM, DB2, Reports)</h3>
+              <span class="badge badge-planned">PLANNED FOR 2ND HALF</span>
+            </div>
+            <div style="font-size: 0.85rem; color: var(--slate-600);">
+              Deploy COBOL validation engine, IDCAMS VSAM KSDS random updates, 132-column report with control breaks, and embedded SQL DB2 batch loader.
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <div style="max-width: 900px; margin: 0 auto; line-height: 1.6;">
+      <strong>About this simulated demonstration:</strong> This is a standalone, client-side browser application designed to showcase the algorithms, JCL control statements, and COBOL logic of the <em>Hotel Reservation and Billing System (HRBS)</em> without requiring active mainframe connectivity. Real batch production runs for completed components were executed on IBM z/OS (JES2/SDSF).
+      <div style="margin-top: 6px; font-size: 0.78rem; color: var(--slate-500);">
+        Course: Mainframe Technology (ID3002) | Vishwakarma Institute of Technology, Pune | AY 2026-27 Sem-1
+      </div>
+    </div>
+  </footer>
+
+  <!-- ================================================================= -->
+  <!-- JAVASCRIPT LOGIC & EMBEDDED DATA                                  -->
+  <!-- ================================================================= -->
+  <script>
+    // Embedded Data Arrays (Static JSON)
+    const RAW_RESERV_DATA = ["RSVPUN261002RS006881KARAN MEHTA         0381STE 202611072026110803008800C       ", "RSVPUN261003RS007495DIYA KHAN           0494STD 202611192026112501003500C       ", "RSVPUN261003RS002456SNEHA MEHTA         0439STE 202612042026120903008800C       ", "RSVPUN261001RS005235RAHUL KHAN          0467DLX 202611212026112503005200C       ", "RSVPUN261005RS002334KARAN KULKARNI      0180DLX 202611272026120404005200C       ", "RSVPUN261005RS006586POOJA DESAI         0156STE 202612042026121001008800C       ", "RSVPUN261004RS008234SNEHA PATIL         0433DLX 202612302027010103005200C       ", "RSVPUN261005RS007227KABIR NAIK          0108DLX 202612222026122401005200C       ", "RSVPUN261005RS007036POOJA MEHTA         0266STD 202611212026112504003500C       ", "RSVPUN261004RS007691POOJA IYER          0208DLX 202611072026111304005200C       ", "RSVPUN261005RS000189PRIYA PATIL         0297DLX 202611182026112203005200C       ", "RSVPUN261001RS008167SANYA GUPTA         0130STD 202612132026122002003500C       ", "RSVPUN261001RS007096MEERA IYER          0476DLX 202612312027010402005200C       ", "RSVPUN261003RS000406RIYA SHAH           0436STD 202611092026111403003500C       ", "RSVPUN261002RS007368VIKRAM DESAI        0183STD 202612122026121702003500C       ", "RSVPUN261002RS008043ROHAN REDDY         0257STD 202611272026120304003500C       ", "RSVPUN261005RS001682POOJA PATIL         0413STD 202611012026110502003500C       ", "RSVPUN261003RS005041ARJUN SHARMA        0500STE 202611082026111402008800C       ", "RSVPUN261005RS008021ROHAN IYER          0209DLX 202612032026121003005200C       ", "RSVPUN261005RS008415ARJUN JOSHI         0402STE 202612112026121201008800C       ", "RSVPUN261002RS004121NEHA IYER           0452STD 202611232026113002003500C       ", "RSVPUN261002RS007847DIYA PATIL          0391STD 202612092026121504003500C       ", "RSVPUN261002RS007368VIKRAM DESAI        0183STD 202612122026121702003500C       ", "RSVPUN261001RS006167VIHAAN MEHTA        0470STD 202611282026113002003500C       ", "RSVPUN261005RS002000ISHITA JOSHI        0251STD 202611222026112404003500C       ", "RSVPUN261001RS008596AARAV IYER          0212STD 202612162026122203003500C       ", "RSVPUN261004RS004238POOJA IYER          0516STE 202611032026110702008800C       ", "RSVPUN261005RS007555KARAN JOSHI         0503STE 202612162026122102008800C       ", "RSVPUN261003RS006509PRIYA IYER          0502STD 202612272026123102003500C       ", "RSVPUN261002RS004121NEHA IYER           0452STD 202611232026113002003500C       ", "RSVPUN261004RS000152DIYA KULKARNI       0398DLX 202612032026121001005200C       ", "RSVPUN261002RS006044NEHA NAIK           0297STD 202611282026120304003500C       ", "RSVPUN261003RS006588AARAV SHARMA        0488DLX 202612252026122902005200C       ", "RSVPUN261003RS003679KABIR IYER          0179DLX 202611052026110802005200C       ", "RSVPUN261003RS006918POOJA GUPTA         0314STD 202611022026110303003500C       ", "RSVPUN261005RS008981NEHA PATIL          0385DLX 202612032026120602005200C       ", "RSVPUN261005RS008816RIYA SHARMA         0307DLX 202612202026122403005200C       ", "RSVPUN261001RS005063MEERA REDDY         0163STD 202612062026120701003500C       ", "RSVPUN261002RS008568AARAV GUPTA         0224STE 202611072026111202008800C       ", "RSVPUN261003RS003319ARJUN MEHTA         0263DLX 202612132026121904005200C       ", "RSVPUN261001RS006524DIYA MEHTA          0380STD 202612112026121303003500C       ", "RSVPUN261004RS008046AARAV MEHTA         0517STE 202611272026112904008800C       ", "RSVPUN261001RS001470ISHITA SHAH         0388STD 202611022026110503003500C       ", "RSVPUN261002RS001908KARAN KHAN          0285STE 202612032026121002008800C       ", "RSVPUN261004RS002114ISHITA KHAN         0138STD 202611072026111004003500C       ", "RSVPUN261003RS002309AMIT SHARMA         0378DLX 202612202026122403005200C       ", "RSVPUN261004RS008487NEHA IYER           0188STE 202612122026121601008800C       ", "RSVPUN261005RS003275KABIR DESAI         0411STE 202612102026121602008800C       ", "RSVPUN261004RS001815RIYA KULKARNI       0448DLX 202612102026121301005200C       ", "RSVPUN261004RS004787PRIYA SHAH          0162STE 202611142026111903008800C       ", "RSVPUN261001RS000801NEHA GUPTA          0356DLX 202612102026121301005200C       ", "RSVPUN261002RS004707MEERA SHARMA        0432STE 202611262026112701008800C       ", "RSVPUN261002RS001607SNEHA KHAN          0448DLX 202612262027010201005200C       ", "RSVPUN261001RS003932NEHA SHAH           0281DLX 202612272026122801005200C       ", "RSVPUN261005RS004262VIHAAN SHAH         0118STE 202611102026111203008800C       ", "RSVPUN261002RS008405KARAN KULKARNI      0483STE 202611192026112201008800C       ", "RSVPUN261003RS004113ROHAN MEHTA         0397DLX 202612062026121204005200C       ", "RSVPUN261003RS004408ADITYA GUPTA        0202STD 202612012026120803003500C       ", "RSVPUN261001RS007485POOJA KHAN          0269STE 202611262026113004008800C       ", "RSVPUN261002RS001251ADITYA JOSHI        0133DLX 202612302027010201005200C       ", "RSVPUN261001RS008224ROHAN MEHTA         0213STE 202612202026122104008800C       ", "RSVPUN261002RS005957ROHAN DESAI         0378STD 202612202026122401003500C       ", "RSVPUN261002RS000416MEERA SHARMA        0160STD 202611212026112601003500C       ", "RSVPUN261003RS005844POOJA DESAI         0152STE 202611192026112403008800C       ", "RSVPUN261002RS007899PRIYA JOSHI         0269STE 202612072026121301008800C       ", "RSVPUN261003RS003445ISHITA KULKARNI     0219STE 202612212026122601008800C       ", "RSVPUN261001RS008940KARAN KHAN          0189DLX 202612122026121501005200C       ", "RSVPUN261005RS006534ADITYA MEHTA        0425STE 202612262027010203008800C       ", "RSVPUN261004RS004713DIYA MEHTA          0130STE 202612142026121704008800C       ", "RSVPUN261003RS006971KABIR MEHTA         0284STE 202612242026122704008800C       ", "RSVPUN261005RS001323RIYA DESAI          0179DLX 202612312027010402005200C       ", "RSVPUN261005RS008976ROHAN REDDY         0455STE 202611152026111903008800C       ", "RSVPUN261005RS001952SNEHA NAIK          0386STE 202612022026120601008800C       ", "RSVPUN261004RS001681DIYA JOSHI          0486STD 202612202026122102003500C       ", "RSVPUN261001RS003659POOJA JOSHI         0443STD 202611082026111303003500C       ", "RSVPUN261005RS007508MEERA JOSHI         0371DLX 202611122026111304005200C       ", "RSVPUN261003RS008033RAHUL GUPTA         0500STD 202611232026112504003500C       ", "RSVPUN261005RS001486ANANYA DESAI        0384DLX 202611092026111501005200C       ", "RSVPUN261003RS002309AMIT SHARMA         0378DLX 202612202026122403005200C       ", "RSVPUN261005RS000189PRIYA PATIL         0297DLX 202611182026112203005200C       ", "RSVPUN261003RS008573RAHUL REDDY         0277STE 202612042026120601008800C       ", "RSVPUN261003RS000042DIYA GUPTA          0267STD 202612032026120701003500C       ", "RSVPUN261001RS000801NEHA GUPTA          0356DLX 202612102026121301005200C       ", "RSVPUN261004RS008297AMIT JOSHI          0197STE 202611302026120502008800C       ", "RSVPUN261004RS003751ADITYA DESAI        0380DLX 202611182026112503005200C       ", "RSVPUN261003RS005578PRIYA SHARMA        0130DLX 202612262027010201005200C       ", "RSVPUN261002RS005957ROHAN DESAI         0378STD 202612202026122401003500C       ", "RSVPUN261002RS008386PRIYA DESAI         0331DLX 202611242026112501005200C       ", "RSVPUN261001RS008940KARAN KHAN          0189DLX 202612122026121501005200C       ", "RSVPUN261002RS007702RAHUL KULKARNI      0453DLX 202611212026112303005200C       ", "RSVPUN261003RS004824VIHAAN SHAH         0351DLX 202612022026120502005200C       ", "RSVPUN261005RS000543POOJA JOSHI         0348DLX 202612262026122701005200C       ", "RSVPUN261005RS007852KABIR DESAI         0250DLX 202611032026110903005200C       ", "RSVPUN261003RS005149VIKRAM GUPTA        0328DLX 202611302026120201005200C       ", "RSVPUN261005RS005898ARJUN MEHTA         0434STE 202612022026120404008800C       ", "RSVPUN261003RS006509PRIYA IYER          0502STD 202612272026123102003500C       ", "RSVPUN261003RS006971KABIR MEHTA         0284STE 202612242026122704008800C       ", "RSVPUN261005RS006892AMIT GUPTA          0454STD 202611012026110402003500C       ", "RSVPUN261005RS003275KABIR DESAI         0411STE 202612102026121602008800C       ", "RSVPUN261003RS005697POOJA REDDY         0475STD 202612102026121602003500C       "];
+    const RAW_FILE1_DATA = ["RSVPUN261001RS007413SANYA SHAH          0342STE 202611302026120502008800C       ", "RSVPUN261001RS008645AARAV MEHTA         0477DLX 202612182026122302005200C       ", "RSVPUN261001RS008609AARAV NAIK          0298DLX 202611062026110801005200C       ", "RSVPUN261004RS008762VIKRAM NAIK         0299STE 202611152026111603008800C       ", "RSVPUN261004RS007487AARAV GUPTA         0401STE 202611192026112101008800C       ", "RSVPUN261005RS007472AARAV MEHTA         0409DLX 202612202026122402005200C       ", "RSVPUN261001RS001292NEHA KHAN           0340DLX 202612062026121201005200C       ", "RSVPUN261003RS000360MEERA PATIL         0414DLX 202611192026112601005200C       ", "RSVPUN261001RS005668POOJA DESAI         0381DLX 202612302027010202005200C       ", "RSVPUN261005RS003647AARAV GUPTA         0212STE 202611252026112904008800C       ", "RSVPUN261003RS006184KABIR REDDY         0139STE 202611082026111302008800C       ", "RSVPUN261003RS004524ANANYA KHAN         0486DLX 202611062026110702005200C       ", "RSVPUN261003RS002509KARAN KULKARNI      0455STD 202611142026112003003500C       ", "RSVPUN261004RS000299RIYA NAIK           0343STD 202611142026111602003500C       ", "RSVPUN261004RS001961ISHITA SHAH         0155STE 202611102026111402008800C       ", "RSVPUN261004RS005031PRIYA PATIL         0327STD 202611062026110704003500C       ", "RSVPUN261004RS000436SANYA DESAI         0361STE 202611172026112003008800C       ", "RSVPUN261001RS001166RAHUL REDDY         0278STD 202611142026111801003500C       ", "RSVPUN261002RS006329PRIYA JOSHI         0111STE 202612042026120704008800C       ", "RSVPUN261004RS001320AMIT MEHTA          0363STD 202612152026121903003500C       ", "RSVPUN261003RS007714ISHITA SHARMA       0309STD 202611292026120302003500C       ", "RSVPUN261002RS002201RIYA IYER           0256STE 202612052026120904008800C       ", "RSVPUN261002RS008689MEERA KULKARNI      0185DLX 202612142026121902005200C       ", "RSVPUN261002RS007677AARAV JOSHI         0417STE 202611052026110801008800C       ", "RSVPUN261004RS006420VIHAAN REDDY        0258DLX 202611252026120101005200C       ", "RSVPUN261004RS004178NEHA KHAN           0115STD 202612062026121101003500C       ", "RSVPUN261002RS005217KARAN DESAI         0408STD 202612222026122303003500C       ", "RSVPUN261005RS001506DIYA NAIK           0216STE 202612032026120603008800C       ", "RSVPUN261001RS000610ROHAN SHARMA        0517STD 202612022026120704003500C       ", "RSVPUN261004RS005882ROHAN JOSHI         0224STE 202611032026110803008800C       ", "RSVPUN261004RS007553VIHAAN JOSHI        0147STD 202612122026121802003500C       ", "RSVPUN261003RS008534AARAV PATIL         0134DLX 202611162026111903005200C       ", "RSVPUN261005RS008948NEHA KULKARNI       0375DLX 202612232026122404005200C       ", "RSVPUN261002RS001723DIYA DESAI          0321STD 202612182026122302003500C       ", "RSVPUN261004RS002511RAHUL PATIL         0382DLX 202611162026111804005200C       ", "RSVPUN261005RS000687AARAV SHAH          0230STD 202612182026122402003500C       ", "RSVPUN261003RS003966POOJA IYER          0228DLX 202612112026121204005200C       ", "RSVPUN261003RS001151RIYA SHAH           0396STD 202611252026112702003500C       ", "RSVPUN261001RS005280ROHAN REDDY         0411STD 202611232026112503003500C       ", "RSVPUN261005RS002756NEHA MEHTA          0485STE 202612242026122904008800C       ", "RSVPUN261003RS005346MEERA IYER          0237STD 202611132026111403003500C       ", "RSVPUN261003RS000757AARAV IYER          0144DLX 202612032026120501005200C       ", "RSVPUN261003RS007842RAHUL PATIL         0298STD 202611152026112203003500C       ", "RSVPUN261001RS000791ISHITA NAIK         0306DLX 202611262026120301005200C       ", "RSVPUN261004RS001783ISHITA PATIL        0166STE 202612032026120901008800C       ", "RSVPUN261004RS001611ADITYA SHAH         0436STE 202612192026122202008800C       ", "RSVPUN261003RS005488RIYA DESAI          0164STE 202612262026123001008800C       ", "RSVPUN261001RS004176KABIR KHAN          0424STD 202611172026111901003500C       ", "RSVPUN261003RS008861ADITYA GUPTA        0479DLX 202612202026122404005200C       ", "RSVPUN261002RS004863SNEHA KHAN          0177STE 202612262026123103008800C       "];
+    const RAW_FILE2_DATA = ["PAYPY000031261020UPIRS0052170002080700KARAN DESAI                               ", "PAYPY000002261119UPIRS0058820002326200ROHAN JOSHI                               ", "PAYPY000016261105CRDRS0045240001952900ANANYA KHAN                               ", "PAYPY000029261221CRDRS0003600003286000MEERA PATIL                               ", "PAYPY000001261122UPIRS0036470000897900AARAV GUPTA                               ", "PAYPY000034261204CRDRS0017230001562000DIYA DESAI                                ", "PAYPY000046261113UPIRS0030200000988300SNEHA DESAI                               ", "PAYPY000040261118UPIRS0084230001634400VIKRAM NAIK                               ", "PAYPY000021261007UPIRS0011510002306100RIYA SHAH                                 ", "PAYPY000010261218UPIRS0076770003582700AARAV JOSHI                               ", "PAYPY000005261102CRDRS0007910000351600ISHITA NAIK                               ", "PAYPY000033261010UPIRS0004360001195100SANYA DESAI                               ", "PAYPY000049261217CSHRS0018640003310400AARAV PATIL                               ", "PAYPY000047261008CRDRS0071850002970000NEHA PATIL                                ", "PAYPY000004261126CRDRS0061840003344400KABIR REDDY                               ", "PAYPY000044261021UPIRS0080120000336200NEHA NAIK                                 ", "PAYPY000015261227UPIRS0016110003091300ADITYA SHAH                               ", "PAYPY000022261004CRDRS0086450001466900AARAV MEHTA                               ", "PAYPY000038261011CSHRS0065550001524200KABIR IYER                                ", "PAYPY000009261128UPIRS0075530003736900VIHAAN JOSHI                              ", "PAYPY000007261128CRDRS0041760001886600KABIR KHAN                                ", "PAYPY000003261025CRDRS0074720002534500AARAV MEHTA                               ", "PAYPY000018261127UPIRS0006100003332500ROHAN SHARMA                              ", "PAYPY000030261012CSHRS0025090003304400KARAN KULKARNI                            ", "PAYPY000027261118CSHRS0078420002478800RAHUL PATIL                               ", "PAYPY000037261103CRDRS0039740001520400VIHAAN PATIL                              ", "PAYPY000035261227CRDRS0064200002915600VIHAAN REDDY                              ", "PAYPY000008261003CSHRS0012920001699900NEHA KHAN                                 ", "PAYPY000023261113CSHRS0074130000689500SANYA SHAH                                ", "PAYPY000011261004CRDRS0056680002941800POOJA DESAI                               ", "PAYPY000041261223UPIRS0051220003426300VIHAAN MEHTA                              ", "PAYPY000017261123UPIRS0048630000519900SNEHA KHAN                                ", "PAYPY000032261128UPIRS0022010001683200RIYA IYER                                 ", "PAYPY000014261025UPIRS0086890002081300MEERA KULKARNI                            ", "PAYPY000024261203UPIRS0017830002011700ISHITA PATIL                              ", "PAYPY000025261109CSHRS0063290000808300PRIYA JOSHI                               ", "PAYPY000026261027UPIRS0074870003761900AARAV GUPTA                               ", "PAYPY000006261004UPIRS0053460002368300MEERA IYER                                ", "PAYPY000013261102UPIRS0086090001097300AARAV NAIK                                ", "PAYPY000042261021CRDRS0068630002442900SNEHA KHAN                                ", "PAYPY000036261110CRDRS0076790001058100ANANYA GUPTA                              ", "PAYPY000043261118UPIRS0006770003639200NEHA KULKARNI                             ", "PAYPY000050261205CRDRS0078040001503600NEHA DESAI                                ", "PAYPY000019261026UPIRS0013200000205400AMIT MEHTA                                ", "PAYPY000028261018CSHRS0088610001851700ADITYA GUPTA                              ", "PAYPY000048261107CSHRS0030910003215700SANYA SHAH                                ", "PAYPY000012261004UPIRS0089480000670700NEHA KULKARNI                             ", "PAYPY000020261107CSHRS0006870001967700AARAV SHAH                                ", "PAYPY000039261009CRDRS0039070003469600AARAV SHAH                                ", "PAYPY000045261021UPIRS0040840000458900PRIYA GUPTA                               "];
+    const RAW_INVOICE_DATA = ["INVPUN20261107G000067089IN007355RS001827KABIR KULKARNI      0070364000000175500001907750004006275P  ", "INVPUN20261119G000701756IN001272RS007997NEHA KHAN           0020176000000258900003634020002382302P  ", "INVPUN20261124G000516471IN001504RS007260ANANYA NAIK         0010052000000143900000331950000697095P  ", "INVPUN20261106G000311139IN000593RS007988KARAN KULKARNI      0030105000000176000000613000001287300P  ", "INVPUN20261123G000184619IN000842RS006679AARAV SHARMA        0070616000000052300011182140007330514P  ", "INVPUN20261104G000353336IN002731RS008193ADITYA IYER         0020176000000136000003412800002237280P  ", "INVPUN20270107G000919628IN000904RS000724KARAN SHARMA        0060210000000222100001161050002438205P  ", "INVPUN20261215G000242249IN002122RS000894ISHITA KULKARNI     0060528000000058600009609480006299548P  ", "INVPUN20270110G000680051IN004020RS004697MEERA NAIK          0040352000000254500006794100004453910P  ", "INVPUN20261230G000775260IN008251RS008736DIYA MEHTA          0070245000000011400001230700002584470P  ", "INVPUN20270103G000070823IN005508RS003339RIYA IYER           0060210000000080500001090250002289525P  ", "INVPUN20261218G000410273IN006067RS003669RIYA KULKARNI       0060210000000271000001185500002489550P  ", "INVPUN20261211G000847940IN006404RS001155MEERA REDDY         0070616000000200700011449260007505626P  ", "INVPUN20261215G000065295IN006890RS001057AARAV PATIL         0010088000000290000002106000001380600P  ", "INVPUN20261203G000027911IN000261RS003999RAHUL DESAI         0030156000000220900000890450001869945P  ", "INVPUN20261122G000783357IN004590RS002529ROHAN SHARMA        0030105000000165200000607600001275960P  ", "INVPUN20261218G000725853IN001953RS008546SANYA GUPTA         0010088000000243200002021760001325376P  ", "INVPUN20261114G000596675IN003268RS006313ARJUN GUPTA         0050175000000192300000971150002039415P  ", "INVPUN20261227G000190069IN000083RS007166ROHAN MEHTA         0050260000000132300001366150002868915P  ", "INVPUN20261128G000980041IN000834RS007194ADITYA NAIK         0070364000000111100001875550003938655P  ", "INVPUN20261230G000775260IN008251RS008736DIYA MEHTA          0070245000000011400001230700002584470P  ", "INVPUN20261211G000847940IN006404RS001155MEERA REDDY         0070616000000200700011449260007505626P  ", "INVPUN20261130G000164766IN000636RS008358PRIYA REDDY         0020104000000036700000538350001130535P  ", "INVPUN20261206G000147155IN002939RS004701ROHAN JOSHI         0070364000000176300001908150004007115P  ", "INVPUN20261217G000396911IN001314RS008216VIHAAN KHAN         0030156000000213700000886850001862385P  ", "INVPUN20261123G000757330IN007609RS005558SNEHA REDDY         0020176000000291000003691800002420180P  ", "INVPUN20261229G000029656IN003937RS004480SANYA KHAN          0040208000000188500001134250002381925P  ", "INVPUN20261206G000575483IN005152RS007600KABIR JOSHI         0060210000000056500001078250002264325P  ", "INVPUN20261201G000422260IN002112RS002184KABIR IYER          0060528000000026900009552420006262142P  ", "INVPUN20270104G000260340IN000345RS006715AMIT MEHTA          0060528000000252500009958500006528350P  ", "INVPUN20261202G000799484IN002789RS001190ISHITA DESAI        0070364000000092700001866350003919335P  ", "INVPUN20261231G000896259IN007270RS006216ROHAN JOSHI         0030105000000025600000537800001129380P  ", "INVPUN20261221G000710849IN000704RS002089PRIYA NAIK          0010052000000138800000329400000691740P  ", "INVPUN20261224G000355232IN004486RS005996ANANYA NAIK         0050260000000014400001307200002745120P  ", "INVPUN20261218G000725853IN001953RS008546SANYA GUPTA         0010088000000243200002021760001325376P  ", "INVPUN20261105G000847081IN001500RS003674PRIYA NAIK          0020176000000069600003293280002158928P  ", "INVPUN20270103G000828351IN006566RS005426SANYA PATIL         0030105000000090500000570250001197525P  ", "INVPUN20261211G000766237IN001961RS002849AARAV IYER          0060210000000288400001194200002507820P  ", "INVPUN20261208G000672372IN005008RS002692ANANYA IYER         0050440000000024200007963560005220556P  ", "INVPUN20270109G000725660IN004365RS003541VIKRAM SHAH         0040140000000200200000800100001680210P  ", "INVPUN20261123G000971507IN000008RS003332VIKRAM GUPTA        0070616000000246400011531520007559552P  ", "INVPUN20261228G000488487IN006391RS002575NEHA SHAH           0070616000000277100011586780007595778P  ", "INVPUN20270106G000746309IN008669RS004225AARAV IYER          0070245000000190100001320050002772105P  ", "INVPUN20261209G000004011IN005109RS007000ADITYA MEHTA        0070245000000031800001240900002605890P  ", "INVPUN20261102G000120843IN007823RS004398VIKRAM MEHTA        0030264000000047900004838220003171722P  ", "INVPUN20261228G000828335IN008074RS004907RAHUL SHAH          0050440000000161400008210520005382452P  ", "INVPUN20261215G000058746IN000539RS002449RIYA DESAI          0040208000000070000001075000002257500P  ", "INVPUN20261230G000554287IN003701RS002865ISHITA KULKARNI     0030156000000024900000792450001664145P  ", "INVPUN20261126G000382181IN004050RS002917KARAN REDDY         0060312000000298700001709350003589635P  ", "INVPUN20261201G000447890IN000125RS006768VIHAAN MEHTA        0030264000000090100004914180003221518P  ", "INVPUN20261209G000096168IN002554RS002594ANANYA JOSHI        0060312000000088400001604200003368820P  ", "INVPUN20261203G000589549IN002148RS008950VIHAAN GUPTA        0050175000000018200000884100001856610P  ", "INVPUN20261204G000557615IN008484RS001931ANANYA JOSHI        0020176000000266900003648420002391742P  ", "INVPUN20261221G000152468IN000115RS008708ISHITA GUPTA        0060312000000285600001702800003575880P  ", "INVPUN20261219G000114041IN007534RS005748AARAV DESAI         0030105000000000700000525350001103235P  ", "INVPUN20270106G000746309IN008669RS004225AARAV IYER          0070245000000190100001320050002772105P  ", "INVPUN20261124G000962816IN004562RS001250VIHAAN KULKARNI     0060210000000059200001079600002267160P  ", "INVPUN20261229G000452865IN003257RS002714KABIR PATIL         0060312000000180000001650000003465000P  ", "INVPUN20261217G000397249IN006551RS004682ADITYA JOSHI        0010052000000041700000280850000589785P  ", "INVPUN20261106G000959806IN005336RS007711VIKRAM DESAI        0040208000000284600001182300002482830P  ", "INVPUN20261104G000813801IN004521RS008376ANANYA DESAI        0050260000000194300001397150002934015P  ", "INVPUN20261231G000342329IN005825RS001575PRIYA IYER          0030105000000110000000580000001218000P  ", "INVPUN20261221G000340557IN007882RS008936AARAV PATIL         0030105000000044300000547150001149015P  ", "INVPUN20261113G000420575IN001522RS004180RAHUL NAIK          0010052000000191200000355600000746760P  ", "INVPUN20270101G000203089IN004642RS000857VIHAAN NAIK         0060312000000029000001574500003306450P  ", "INVPUN20261115G000916886IN006351RS002016NEHA IYER           0010035000000239100000294550000618555P  ", "INVPUN20261218G000430759IN008606RS006141RIYA JOSHI          0010088000000176100001900980001246198P  ", "INVPUN20261115G000721735IN005204RS008379ROHAN PATIL         0070616000000164900011384820007463382P  ", "INVPUN20261120G000988036IN000290RS000205SNEHA SHARMA        0010088000000173800001896840001243484P  ", "INVPUN20261205G000714445IN006864RS001945RAHUL SHAH          0060210000000154000001127000002366700P  ", "INVPUN20261212G000435059IN007070RS001580KARAN GUPTA         0070616000000060000011196000007339600P  ", "INVPUN20261201G000447890IN000125RS006768VIHAAN MEHTA        0030264000000090100004914180003221518P  ", "INVPUN20270109G000128075IN008546RS007369AARAV JOSHI         0030105000000189400000619700001301370P  ", "INVPUN20261225G000869090IN001580RS001175RIYA MEHTA          0060528000000254500009962100006530710P  ", "INVPUN20261225G000717514IN001103RS001007ROHAN GUPTA         0070245000000209700001329850002792685P  ", "INVPUN20261124G000119365IN004357RS006144ROHAN KHAN          0060210000000075600001087800002284380P  ", "INVPUN20261228G000764883IN000057RS001814VIKRAM SHARMA       0040208000000156500001118250002348325P  ", "INVPUN20261117G000068921IN000222RS005219ARJUN SHARMA        0020176000000148200003434760002251676P  ", "INVPUN20261212G000401019IN003905RS003773KABIR SHAH          0060528000000182100009831780006445278P  ", "INVPUN20270106G000397187IN003226RS008760ANANYA GUPTA        0050440000000202100008283780005430478P  ", "INVPUN20261108G000195348IN001774RS008542ADITYA JOSHI        0040352000000058700006441660004222866P  ", "INVPUN20261223G000719172IN003378RS004432KABIR REDDY         0070364000000112900001876450003940545P  ", "INVPUN20261125G000178816IN005069RS006547DIYA PATIL          0070245000000005200001227600002577960P  ", "INVPUN20261231G000896259IN007270RS006216ROHAN JOSHI         0030105000000025600000537800001129380P  ", "INVPUN20261113G000180239IN006118RS008623KABIR PATIL         0050260000000200200001400100002940210P  ", "INVPUN20261213G000884050IN000130RS004996MEERA JOSHI         0040352000000281700006843060004486006P  ", "INVPUN20270108G000302924IN001219RS001914VIKRAM KULKARNI     0010088000000007200001596960001046896P  ", "INVPUN20261222G000134333IN004347RS000686AARAV DESAI         0020176000000165700003466260002272326P  ", "INVPUN20261210G000371115IN005137RS008255AMIT NAIK           0010052000000297600000408800000858480P  ", "INVPUN20261214G000059276IN008374RS004257POOJA MEHTA         0040208000000094100001087050002282805P  ", "INVPUN20261223G000719172IN003378RS004432KABIR REDDY         0070364000000112900001876450003940545P  ", "INVPUN20261103G000602424IN006618RS005580AARAV JOSHI         0040208000000185700001132850002378985P  ", "INVPUN20261222G000076330IN003586RS003441KABIR DESAI         0020176000000176900003486420002285542P  ", "INVPUN20261106G000066175IN003291RS002184NEHA DESAI          0050440000000235700008344260005470126P  ", "INVPUN20261107G000067089IN007355RS001827KABIR KULKARNI      0070364000000175500001907750004006275P  ", "INVPUN20261204G000951515IN005004RS008514PRIYA PATIL         0070245000000266700001358350002852535P  ", "INVPUN20261114G000596675IN003268RS006313ARJUN GUPTA         0050175000000192300000971150002039415P  ", "INVPUN20261212G000697507IN008607RS004785SNEHA SHARMA        0040208000000139500001109750002330475P  ", "INVPUN20261228G000828335IN008074RS004907RAHUL SHAH          0050440000000161400008210520005382452P  ", "INVPUN20261103G000602424IN006618RS005580AARAV JOSHI         0040208000000185700001132850002378985P  ", "INVPUN20261106G000180112IN001723RS001132VIHAAN SHAH         0030156000000234100000897050001883805P  ", "INVPUN20261204G000557615IN008484RS001931ANANYA JOSHI        0020176000000266900003648420002391742P  ", "INVPUN20261223G000706319IN000638RS007267KARAN KULKARNI      0070616000000212600011470680007519668P  ", "INVPUN20261224G000389259IN000466RS006537ANANYA KULKARNI     0040208000000009400001044700002193870P  ", "INVPUN20261206G000532999IN001371RS004973ADITYA KHAN         0010052000000238400000379200000796320P  ", "INVPUN20261216G000739410IN003044RS001243VIKRAM NAIK         0020104000000011800000525900001104390P  ", "INVPUN20261231G000342329IN005825RS001575PRIYA IYER          0030105000000110000000580000001218000P  ", "INVPUN20261112G000219215IN008384RS001977DIYA SHAH           0020070000000190900000445450000935445P  ", "INVPUN20261203G000589549IN002148RS008950VIHAAN GUPTA        0050175000000018200000884100001856610P  ", "INVPUN20261222G000232216IN004427RS005479KABIR JOSHI         0020104000000121000000580500001219050P  ", "INVPUN20261219G000133214IN007422RS006086AARAV SHAH          0060528000000253900009961020006530002P  ", "INVPUN20261208G000672372IN005008RS002692ANANYA IYER         0050440000000024200007963560005220556P  ", "INVPUN20261218G000048334IN006515RS007603SNEHA NAIK          0030264000000004800004760640003120864P  ", "INVPUN20261115G000665414IN000092RS000752PRIYA REDDY         0030156000000093200000826600001735860P  ", "INVPUN20261223G000487199IN001139RS006369POOJA GUPTA         0010035000000255500000302750000635775P  ", "INVPUN20261107G000418927IN000897RS004610ADITYA JOSHI        0070616000000124900011312820007416182P  ", "INVPUN20261111G000323295IN000816RS001185POOJA SHARMA        0060528000000111200009704160006361616P  ", "INVPUN20261107G000932616IN000758RS004012VIHAAN PATIL        0020104000000180300000610150001281315P  ", "INVPUN20270104G000027215IN008021RS001449ISHITA SHARMA       0070616000000212000011469600007518960P  ", "INVPUN20261228G000035537IN000306RS007058MEERA DESAI         0050440000000218200008312760005449476P  "];
+
+    // State Variables
+    let sortedReservations = [];
+    let matchedResults = null;
+
+    // Tab Switching
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+
+      const targetPane = document.getElementById('pane-' + tabId);
+      if (targetPane) targetPane.classList.add('active');
+
+      const tabs = document.querySelectorAll('.nav-tab');
+      tabs.forEach(t => {
+        if (t.getAttribute('onclick') && t.getAttribute('onclick').includes(tabId)) {
+          t.classList.add('active');
+        }
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Component Node Inspector
+    const PIPELINE_NODES = {
+      ingest: {
+        title: "1. Raw Dataset Provisioning (ALLOCATE / LOADDATA)",
+        status: "DONE",
+        statusClass: "badge-done",
+        purpose: "Initializes Physical Sequential (PS) datasets and Partitioned Datasets (PDS) for source code and fixed-block data.",
+        inputs: "In-stream card images (80 Bytes)",
+        outputs: "RESERV.INPUT (100 recs), FILE1 (50 recs), FILE2 (50 recs), INVOICE.INPUT (120 recs)",
+        program: "IEFBR14 (Allocation) & IEBGENER (In-stream Data Loader)",
+        logic: "Allocates 80-byte and 100-byte fixed-block records on DASD volumes under <userid>.HRBS.*."
+      },
+      sort: {
+        title: "2. Assignment 1: JCL SORT Deduplication (JOB01)",
+        status: "DONE",
+        statusClass: "badge-done",
+        purpose: "Deduplicates 100 raw reservation records on primary key (cols 13-20) and orders records ascending.",
+        inputs: "<userid>.HRBS.RESERV.INPUT (100 Records, 80 Bytes)",
+        outputs: "<userid>.HRBS.RESERV.SORTED (90 Unique Records, 80 Bytes)",
+        program: "IBM DFSORT (PGM=SORT)",
+        logic: "SORT FIELDS=(13,8,CH,A) orders ascending; SUM FIELDS=NONE deletes subsequent duplicate keys."
+      },
+      match: {
+        title: "3. Assignment 2: COBOL Two-File Key Match (JOB02)",
+        status: "DONE",
+        statusClass: "badge-done",
+        purpose: "Cross-references reservations with payment receipts to identify paid bookings and outstanding balances.",
+        inputs: "FILE1 (50 Reservations, 80B), FILE2 (50 Payments, 80B)",
+        outputs: "FILE3 (35 Matched Pairs, 160 Bytes)",
+        program: "Enterprise COBOL (HRBSMTCH.cbl) compiled via IGYWCL",
+        logic: "Loads FILE2 into a 100-entry internal table in WORKING-STORAGE; streams FILE1 and writes matched pairs to FILE3."
+      },
+      validate: {
+        title: "4. Reservation Validation Engine (JOB07)",
+        status: "PLANNED",
+        statusClass: "badge-planned",
+        purpose: "Validates bookings against 10 integrity rules (calendar validity, tariff consistency, room types).",
+        inputs: "<userid>.HRBS.RESERV.SORTED (80 Bytes)",
+        outputs: "RESERV.VALID (80 Bytes) and RESERV.REJECT (120 Bytes)",
+        program: "Enterprise COBOL (HRBSVAL.cbl)",
+        logic: "Inspects date syntax, room rates (STD=3500, DLX=5200, STE=8800). Routes invalid records to reject audit log."
+      },
+      vsam: {
+        title: "5. VSAM KSDS Master & Random Updates (JOB08 / JOB09)",
+        status: "PLANNED",
+        statusClass: "badge-planned",
+        purpose: "Maintains keyed indexed master cluster and processes transaction updates (Add/Cancel/Checkout/Update).",
+        inputs: "RESERV.VALID & TRANS.INPUT (31 records)",
+        outputs: "RESERV.KSDS (Indexed), TRANS.AUDIT (120B), TRANS.REJECT (120B)",
+        program: "IDCAMS (Define/REPRO) & COBOL (HRBSUPD.cbl)",
+        logic: "Defines KSDS KEYS(8 12) RECORDSIZE(80 80); random I-O with in-memory room double-booking prevention."
+      },
+      billing: {
+        title: "6. COBOL Billing Engine (JOB06)",
+        status: "PLANNED",
+        statusClass: "badge-planned",
+        purpose: "Generates formatted invoices applying room rates, 5% base service charges, extra services, and tiered GST.",
+        inputs: "RESERV.VALID & SERVICE.INPUT (Extra Services)",
+        outputs: "INVOICE.OUTPUT / INVOICE.GDG(+1) (100 Bytes)",
+        program: "Enterprise COBOL (HRBSBIL.cbl)",
+        logic: "Nights = INTEGER-OF-DATE(Checkout) - INTEGER-OF-DATE(Checkin). GST rate = 5% for rate <= 7500, else 18%."
+      },
+      rexx: {
+        title: "7. Assignment 3: REXX Deduplication & Sort (JOB03)",
+        status: "PLANNED",
+        statusClass: "badge-planned",
+        purpose: "Cleanses invoice datasets by removing duplicate invoice IDs (cols 25-32) and sorting.",
+        inputs: "INVOICE.INPUT (120 Records, 100 Bytes)",
+        outputs: "INVOICE.CLEAN (105 Unique Sorted Records, 100 Bytes)",
+        program: "TSO/E REXX (HRBSDEDP.rexx) under IKJEFT01",
+        logic: "Uses associative stem array seen.k = 1 for O(N) duplicate removal, followed by Shell Sort."
+      },
+      audit: {
+        title: "8. Assignment 4: Count Reconciliation Audit (JOB04)",
+        status: "PLANNED",
+        statusClass: "badge-planned",
+        purpose: "Automated integrity checkpoint: compares record counts before and after descending sort.",
+        inputs: "Reservation input dataset (100 Records)",
+        outputs: "A4.OUTPUT (Cataloged only on count match; error message on mismatch)",
+        program: "DFSORT, ICETOOL COUNT NOTEQUAL(1) RC4, and JCL IF-ELSE",
+        logic: "Merges two count records; SUM FIELDS=NONE leaves 1 record if equal, 2 if unequal. ICETOOL checks count != 1."
+      },
+      db2: {
+        title: "9. DB2 Relational Subsystem (JOB05 / JOB12)",
+        status: "PLANNED",
+        statusClass: "badge-planned",
+        purpose: "Relational persistence across 5 tables; embedded SQL batch loader and unpaid bills cursor query.",
+        inputs: "RESERV.VALID & INVOICE.OUTPUT",
+        outputs: "DB2 Tables (GUEST, ROOM, RESERVATION, BILL, PAYMENT)",
+        program: "DSNTEP2 & Enterprise COBOL with SQL (HRBSDB2.cbl)",
+        logic: "Precompiles SQL, binds package/plan, inserts with SQLCODE -803 duplicate key tolerance, executes cursor C_UNPAID."
+      },
+      report: {
+        title: "10. 132-Column Management Billing Report (JOB11)",
+        status: "PLANNED",
+        statusClass: "badge-planned",
+        purpose: "Prints 132-column report with room-category control breaks, pagination, and grand totals.",
+        inputs: "Sorted Invoices (100 Bytes)",
+        outputs: "BILLING.REPORT / REPORT.GDG(+1) (132 Bytes)",
+        program: "Enterprise COBOL (HRBSRPT.cbl)",
+        logic: "Tracks room type control breaks (STD, DLX, STE), produces formatted detail lines, subtotals, and grand totals."
+      },
+      cycle: {
+        title: "11. Master Batch Pipeline (JOB10)",
+        status: "PLANNED",
+        statusClass: "badge-planned",
+        purpose: "Synchronized production batch cycle executing all components with Generation Data Groups (GDGs).",
+        inputs: "All raw input files",
+        outputs: "GDG Invoice generations, GDG Report generations, updated VSAM & DB2",
+        program: "Master JCL JOB10_HRBS_BATCH_CYCLE.jcl",
+        logic: "Coordinates 9 batch steps using COND=(4,LT) to guarantee automatic checkpointing and rollback on error."
+      }
+    };
+
+    function inspectNode(nodeKey) {
+      document.querySelectorAll('.pipe-node').forEach(n => n.classList.remove('active-node'));
+      const clicked = event ? event.currentTarget : null;
+      if (clicked) clicked.classList.add('active-node');
+
+      const d = PIPELINE_NODES[nodeKey];
+      if (!d) return;
+
+      const box = document.getElementById('node-inspector');
+      box.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <h3 style="font-size: 1.15rem; color: var(--navy-900);">${d.title}</h3>
+          <span class="badge ${d.statusClass}">${d.status}</span>
+        </div>
+        <p style="font-size: 0.9rem; color: var(--slate-700); margin-bottom: 12px;">${d.purpose}</p>
+        <div class="grid-2" style="margin-bottom: 0;">
+          <div style="font-size: 0.85rem; background: #ffffff; padding: 10px; border-radius: 4px; border: 1px solid var(--slate-200);">
+            <div><strong>Input:</strong> ${d.inputs}</div>
+            <div style="margin-top: 4px;"><strong>Output:</strong> ${d.outputs}</div>
+          </div>
+          <div style="font-size: 0.85rem; background: #ffffff; padding: 10px; border-radius: 4px; border: 1px solid var(--slate-200);">
+            <div><strong>Mainframe Program:</strong> <code>${d.program}</code></div>
+            <div style="margin-top: 4px;"><strong>Methodology:</strong> ${d.logic}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    // =================================================================
+    // ASSIGNMENT 1 SIMULATION LOGIC
+    // =================================================================
+    function initAssignment1() {
+      // Count duplicates in RAW_RESERV_DATA
+      const keyCounts = {};
+      RAW_RESERV_DATA.forEach(r => {
+        const k = r.substring(12, 20);
+        keyCounts[k] = (keyCounts[k] || 0) + 1;
+      });
+
+      const tbody = document.getElementById('tbody-a1-raw');
+      tbody.innerHTML = '';
+      const seen = new Set();
+
+      RAW_RESERV_DATA.forEach((r, idx) => {
+        const k = r.substring(12, 20);
+        const isDup = keyCounts[k] > 1;
+        const isSecondOccurrence = seen.has(k);
+        if (isDup) seen.add(k);
+
+        const tr = document.createElement('tr');
+        if (isSecondOccurrence) {
+          tr.className = 'highlight-dup';
+        }
+
+        tr.innerHTML = `
+          <td>${idx + 1}</td>
+          <td>${isSecondOccurrence ? '<span class="badge badge-dup">DUPLICATE</span>' : '<span style="color: #64748b;">Unique</span>'}</td>
+          <td><span class="mono-cell key-highlight">${k}</span></td>
+          <td>${r.substring(20, 40).trim()}</td>
+          <td>${r.substring(40, 44)}</td>
+          <td>${r.substring(44, 48).trim()}</td>
+          <td>${r.substring(48, 56)}</td>
+          <td>${r.substring(56, 64)}</td>
+          <td class="mono-cell" style="font-size: 0.78rem;">${r}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function runSimulationA1() {
+      const seen = new Set();
+      sortedReservations = [];
+
+      RAW_RESERV_DATA.forEach(r => {
+        const k = r.substring(12, 20);
+        if (!seen.has(k)) {
+          seen.add(k);
+          sortedReservations.push(r);
+        }
+      });
+
+      // Sort by key ascending
+      sortedReservations.sort((a, b) => a.substring(12, 20).localeCompare(b.substring(12, 20)));
+
+      document.getElementById('sim-output-a1').style.display = 'block';
+      renderA1Sorted(sortedReservations);
+      document.getElementById('sim-output-a1').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function renderA1Sorted(records) {
+      const tbody = document.getElementById('tbody-a1-out');
+      tbody.innerHTML = '';
+      records.forEach((r, idx) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${idx + 1}</td>
+          <td><span class="mono-cell key-highlight">${r.substring(12, 20)}</span></td>
+          <td>${r.substring(20, 40).trim()}</td>
+          <td>${r.substring(40, 44)}</td>
+          <td>${r.substring(44, 48).trim()}</td>
+          <td>INR ${parseInt(r.substring(66, 72))}</td>
+          <td>${r.substring(48, 56)}</td>
+          <td>${r.substring(56, 64)}</td>
+          <td class="mono-cell" style="font-size: 0.78rem;">${r}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function filterTableA1Out() {
+      const term = document.getElementById('search-a1-out').value.toUpperCase();
+      const filtered = sortedReservations.filter(r => r.toUpperCase().includes(term));
+      renderA1Sorted(filtered);
+    }
+
+    // =================================================================
+    // ASSIGNMENT 2 SIMULATION LOGIC
+    // =================================================================
+    function runSimulationA2() {
+      // FILE1: resv (cols 13-20)
+      // FILE2: pay (cols 21-28)
+      const payMap = new Map();
+      RAW_FILE2_DATA.forEach(p => {
+        const pKey = p.substring(20, 28);
+        payMap.set(pKey, p);
+      });
+
+      const matched = [];
+      const unmatchedResv = [];
+      const matchedPayKeys = new Set();
+
+      RAW_FILE1_DATA.forEach(r => {
+        const rKey = r.substring(12, 20);
+        if (payMap.has(rKey)) {
+          matched.push({
+            resv: r,
+            pay: payMap.get(rKey),
+            key: rKey
+          });
+          matchedPayKeys.add(rKey);
+        } else {
+          unmatchedResv.push(r);
+        }
+      });
+
+      const unmatchedPay = RAW_FILE2_DATA.filter(p => !matchedPayKeys.has(p.substring(20, 28)));
+
+      matchedResults = { matched, unmatchedResv, unmatchedPay };
+
+      document.getElementById('sim-output-a2').style.display = 'block';
+
+      // Render Matched Table
+      const tbMatched = document.getElementById('tbody-a2-matched');
+      tbMatched.innerHTML = '';
+      matched.forEach((m, idx) => {
+        const tr = document.createElement('tr');
+        const amount = (parseInt(m.pay.substring(28, 38)) / 100).toFixed(2);
+        tr.innerHTML = `
+          <td>${idx + 1}</td>
+          <td><span class="mono-cell key-highlight">${m.key}</span></td>
+          <td>${m.resv.substring(20, 40).trim()}</td>
+          <td>${m.resv.substring(40, 44)}</td>
+          <td><span class="mono-cell">${m.pay.substring(3, 11)}</span></td>
+          <td><span class="badge badge-code">${m.pay.substring(17, 20)}</span></td>
+          <td style="font-weight: 600;">INR ${amount}</td>
+          <td>${m.pay.substring(38, 58).trim()}</td>
+          <td class="mono-cell" style="font-size: 0.75rem;">${m.resv + m.pay}</td>
+        `;
+        tbMatched.appendChild(tr);
+      });
+
+      // Render Unmatched Resv Table
+      const tbUnResv = document.getElementById('tbody-a2-unmatched-resv');
+      tbUnResv.innerHTML = '';
+      unmatchedResv.forEach((r, idx) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${idx + 1}</td>
+          <td><span class="mono-cell key-highlight">${r.substring(12, 20)}</span></td>
+          <td>${r.substring(20, 40).trim()}</td>
+          <td>${r.substring(40, 44)}</td>
+          <td>INR ${parseInt(r.substring(66, 72))}</td>
+          <td>${r.substring(48, 56)}</td>
+          <td>${r.substring(72, 73)}</td>
+          <td class="mono-cell" style="font-size: 0.78rem;">${r}</td>
+        `;
+        tbUnResv.appendChild(tr);
+      });
+
+      // Render Unmatched Pay Table
+      const tbUnPay = document.getElementById('tbody-a2-unmatched-pay');
+      tbUnPay.innerHTML = '';
+      unmatchedPay.forEach((p, idx) => {
+        const tr = document.createElement('tr');
+        const amount = (parseInt(p.substring(28, 38)) / 100).toFixed(2);
+        tr.innerHTML = `
+          <td>${idx + 1}</td>
+          <td><span class="mono-cell">${p.substring(3, 11)}</span></td>
+          <td><span class="mono-cell key-highlight">${p.substring(20, 28)}</span></td>
+          <td><span class="badge badge-code">${p.substring(17, 20)}</span></td>
+          <td style="font-weight: 600;">INR ${amount}</td>
+          <td>${p.substring(38, 58).trim()}</td>
+          <td class="mono-cell" style="font-size: 0.78rem;">${p}</td>
+        `;
+        tbUnPay.appendChild(tr);
+      });
+
+      showA2SubTab('matched');
+      document.getElementById('sim-output-a2').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function showA2SubTab(subTabKey) {
+      document.getElementById('a2-sub-matched').style.display = (subTabKey === 'matched') ? 'block' : 'none';
+      document.getElementById('a2-sub-unmatched-resv').style.display = (subTabKey === 'unmatched-resv') ? 'block' : 'none';
+      document.getElementById('a2-sub-unmatched-pay').style.display = (subTabKey === 'unmatched-pay') ? 'block' : 'none';
+
+      document.querySelectorAll('#sim-output-a2 button').forEach(b => {
+        b.style.borderBottom = '2px solid transparent';
+      });
+      const activeBtn = document.getElementById('btn-a2-' + subTabKey);
+      if (activeBtn) activeBtn.style.borderBottom = '2px solid var(--blue-600)';
+    }
+
+    // =================================================================
+    // DATA BROWSER & COLUMN RULER
+    // =================================================================
+    function renderDataBrowser() {
+      const searchTerm = document.getElementById('search-browser').value.toUpperCase();
+      const rtypeFilter = document.getElementById('filter-rtype').value;
+      const statusFilter = document.getElementById('filter-status').value;
+
+      const tbody = document.getElementById('tbody-browser');
+      tbody.innerHTML = '';
+
+      let count = 0;
+      RAW_RESERV_DATA.forEach((r, idx) => {
+        const rid = r.substring(12, 20);
+        const name = r.substring(20, 40).trim();
+        const room = r.substring(40, 44);
+        const rtype = r.substring(44, 48).trim();
+        const rate = parseInt(r.substring(66, 72));
+        const cin = r.substring(48, 56);
+        const cout = r.substring(56, 64);
+        const guests = r.substring(64, 66);
+        const status = r.substring(72, 73);
+        const bkdate = r.substring(6, 12);
+
+        // Filters
+        if (rtypeFilter !== 'ALL' && rtype !== rtypeFilter) return;
+        if (statusFilter !== 'ALL' && status !== statusFilter) return;
+        if (searchTerm && !r.toUpperCase().includes(searchTerm)) return;
+
+        count++;
+        const tr = document.createElement('tr');
+        tr.style.cursor = 'pointer';
+        tr.onclick = () => selectRulerRecord(r);
+
+        tr.innerHTML = `
+          <td>${count}</td>
+          <td><span class="mono-cell key-highlight">${rid}</span></td>
+          <td><strong>${name}</strong></td>
+          <td>${room}</td>
+          <td><span class="badge badge-code">${rtype}</span></td>
+          <td>INR ${rate}</td>
+          <td>${cin}</td>
+          <td>${cout}</td>
+          <td>${guests}</td>
+          <td><span class="badge ${status === 'C' ? 'badge-done' : (status === 'X' ? 'badge-dup' : 'badge-planned')}">${status}</span></td>
+          <td>${bkdate}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function selectRulerRecord(recordStr) {
+      const rid = recordStr.substring(12, 20);
+      document.getElementById('ruler-sel-id').innerText = rid;
+      document.getElementById('ruler-raw-text').innerText = recordStr;
+
+      const fieldsBox = document.getElementById('ruler-fields');
+      fieldsBox.innerHTML = `
+        <div class="kpi-card">
+          <span class="kpi-title">Rec Type (Cols 1-3)</span>
+          <span style="font-family: var(--mono); font-weight: 700;">${recordStr.substring(0, 3)}</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-title">Branch (Cols 4-6)</span>
+          <span style="font-family: var(--mono); font-weight: 700;">${recordStr.substring(3, 6)}</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-title">Booking Date (7-12)</span>
+          <span style="font-family: var(--mono); font-weight: 700;">${recordStr.substring(6, 12)}</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-title">Res ID (13-20) [KEY]</span>
+          <span style="font-family: var(--mono); font-weight: 700; color: var(--blue-600);">${recordStr.substring(12, 20)}</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-title">Guest Name (21-40)</span>
+          <span style="font-family: var(--mono); font-weight: 700;">${recordStr.substring(20, 40).trim()}</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-title">Room &amp; Type (41-48)</span>
+          <span style="font-family: var(--mono); font-weight: 700;">${recordStr.substring(40, 44)} (${recordStr.substring(44, 48).trim()})</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-title">Dates (49-64)</span>
+          <span style="font-family: var(--mono); font-weight: 700;">${recordStr.substring(48, 56)} to ${recordStr.substring(56, 64)}</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-title">Rate (67-72)</span>
+          <span style="font-family: var(--mono); font-weight: 700;">INR ${parseInt(recordStr.substring(66, 72))} (${recordStr.substring(72, 73)})</span>
+        </div>
+      `;
+      document.getElementById('selected-record-box').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // =================================================================
+    // ROADMAP & PREVIEWS (PLANNED)
+    // =================================================================
+    function togglePreviewA3() {
+      const box = document.getElementById('preview-a3-box');
+      if (box.style.display === 'block') {
+        box.style.display = 'none';
+        return;
+      }
+      box.style.display = 'block';
+
+      // Deduplicate invoices on cols 25-32
+      const seen = new Set();
+      const dedup = [];
+      RAW_INVOICE_DATA.forEach(inv => {
+        const k = inv.substring(24, 32);
+        if (!seen.has(k)) {
+          seen.add(k);
+          dedup.push(inv);
+        }
+      });
+      dedup.sort((a, b) => a.substring(24, 32).localeCompare(b.substring(24, 32)));
+
+      const tbody = document.getElementById('tbody-a3-preview');
+      tbody.innerHTML = '';
+      dedup.forEach((inv, idx) => {
+        const tr = document.createElement('tr');
+        const tot = (parseInt(inv.substring(87, 97)) / 100).toFixed(2);
+        tr.innerHTML = `
+          <td>${idx + 1}</td>
+          <td><span class="mono-cell key-highlight">${inv.substring(24, 32)}</span></td>
+          <td>${inv.substring(32, 40)}</td>
+          <td>${inv.substring(40, 60).trim()}</td>
+          <td style="font-weight: 600;">INR ${tot}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function togglePreviewA4() {
+      const box = document.getElementById('preview-a4-box');
+      box.style.display = (box.style.display === 'block') ? 'none' : 'block';
+      if (box.style.display === 'block') {
+        runA4Preview('PASS');
+      }
+    }
+
+    function runA4Preview(scenario) {
+      const trace = document.getElementById('a4-audit-trace');
+      if (scenario === 'PASS') {
+        trace.innerHTML = `
+[STEP 1: CNTBEF]   Count records in RESERV.INPUT: 100 records &rarr; Writes &&CNTBEF (Count = 100)
+[STEP 2: SORTDESC] Sort descending FIELDS=(13,8,CH,D) &rarr; Writes &&SORTED (100 records)
+[STEP 3: CNTAFT]   Count records in &&SORTED: 100 records &rarr; Writes &&CNTAFT (Count = 100)
+[STEP 4: MERGECNT] Concatenate &&CNTBEF (100) and &&CNTAFT (100) &rarr; 2 count records
+                   SORT FIELDS=(1,8,CH,A) + SUM FIELDS=NONE
+                   -> Identical count keys (100 == 100)! Duplicate eliminated.
+                   -> Dataset &&CMP contains EXACTLY 1 RECORD.
+[STEP 5: CHECK]    ICETOOL COUNT FROM(CMP) NOTEQUAL(1) RC4
+                   -> Condition 'NOTEQUAL(1)' is FALSE (count is 1).
+                   -> ICETOOL sets RC = 0.
+[STEP 6: CHKRC]    IF (CHECK.RC = 0) THEN
+                   -> Output cataloged to &lt;userid&gt;.HRBS.A4.OUTPUT (100 records kept).
+                   -> Message: '**** RECORD COUNT BEFORE = AFTER SORT. OUTPUT FILE KEPT. ****'
+                   -> Expected Job Status: CC 0000 (SUCCESS).
+        `;
+      } else {
+        trace.innerHTML = `
+[STEP 1: CNTBEF]   Count records in RESERV.INPUT: 100 records &rarr; Writes &&CNTBEF (Count = 100)
+[STEP 2: SORTDESC] Sort descending with OPTION STOPAFT=90 (Simulated Truncation) &rarr; Writes &&SORTED (90 records)
+[STEP 3: CNTAFT]   Count records in &&SORTED: 90 records &rarr; Writes &&CNTAFT (Count = 90)
+[STEP 4: MERGECNT] Concatenate &&CNTBEF (100) and &&CNTAFT (90) &rarr; 2 count records
+                   SORT FIELDS=(1,8,CH,A) + SUM FIELDS=NONE
+                   -> Keys differ ('100' != '90')! Neither is duplicate.
+                   -> Dataset &&CMP contains EXACTLY 2 RECORDS.
+[STEP 5: CHECK]    ICETOOL COUNT FROM(CMP) NOTEQUAL(1) RC4
+                   -> Condition 'NOTEQUAL(1)' is TRUE (count is 2).
+                   -> ICETOOL sets RC = 4.
+[STEP 6: CHKRC]    IF (CHECK.RC = 0) is FALSE -> ELSE branch executed:
+                   -> Truncated output discarded; not cataloged.
+                   -> IDCAMS SET MAXCC=8 executed.
+                   -> Message: '**** ERROR: RECORD COUNT MISMATCH AFTER SORT. OUTPUT NOT KEPT. ****'
+                   -> Expected Job Status: CC 0008 (FAILURE AS INTENDED).
+        `;
+      }
+    }
+
+    function showValidationRules() {
+      const box = document.getElementById('val-rules-box');
+      box.style.display = (box.style.display === 'block') ? 'none' : 'block';
+    }
+
+    function toggleBillingCalculator() {
+      const box = document.getElementById('billing-calc-box');
+      box.style.display = (box.style.display === 'block') ? 'none' : 'block';
+      if (box.style.display === 'block') runBillingCalc();
+    }
+
+    function runBillingCalc() {
+      const selId = document.getElementById('calc-booking-sel').value;
+      const r = RAW_RESERV_DATA.find(x => x.substring(12, 20) === selId) || RAW_RESERV_DATA[0];
+
+      const name = r.substring(20, 40).trim();
+      const room = r.substring(40, 44);
+      const rtype = r.substring(44, 48).trim();
+      const rate = parseInt(r.substring(66, 72));
+      const cin = r.substring(48, 56);
+      const cout = r.substring(56, 64);
+
+      // Nights calculation
+      const dIn = new Date(cin.substring(0,4), parseInt(cin.substring(4,6))-1, cin.substring(6,8));
+      const dOut = new Date(cout.substring(0,4), parseInt(cout.substring(4,6))-1, cout.substring(6,8));
+      const nights = Math.max(1, Math.round((dOut - dIn) / (1000 * 60 * 60 * 24)));
+
+      const roomCharge = nights * rate;
+      const baseSvc = roomCharge * 0.05;
+      const taxRate = (rate > 7500) ? 0.18 : 0.05;
+      const tax = (roomCharge + baseSvc) * taxRate;
+      const total = roomCharge + baseSvc + tax;
+
+      document.getElementById('calc-result').innerHTML = `
+        <div style="font-weight: 700; margin-bottom: 6px; color: var(--navy-900);">Invoice Breakdown for Reservation: ${selId} (${name})</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <div>Room: <strong>${room} (${rtype})</strong></div>
+          <div>Dates: <strong>${cin} &rarr; ${cout}</strong> (${nights} nights)</div>
+          <div>Nightly Tariff: <strong>INR ${rate.toLocaleString()}</strong></div>
+          <div>Room Charge: <strong>INR ${roomCharge.toLocaleString()}</strong></div>
+          <div>Service Charge (5%): <strong>INR ${baseSvc.toLocaleString()}</strong></div>
+          <div>GST (${taxRate * 100}%): <strong>INR ${tax.toLocaleString()}</strong></div>
+        </div>
+        <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--slate-300); font-size: 1rem; font-weight: 700; color: #166534;">
+          Total Bill Amount: INR ${total.toLocaleString()}
+        </div>
+      `;
+    }
+
+    // Window Onload Initialization
+    window.addEventListener('DOMContentLoaded', () => {
+      initAssignment1();
+      inspectNode('ingest');
+      renderDataBrowser();
+      selectRulerRecord(RAW_RESERV_DATA[0]);
+    });
+  </script>
+</body>
+</html>

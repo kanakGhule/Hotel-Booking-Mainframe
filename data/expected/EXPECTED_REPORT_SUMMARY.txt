@@ -1,0 +1,5 @@
+HRBS BILLING REPORT - REFERENCE TOTALS BY ROOM TYPE:
+Room Type: DLX  | Bookings: 33  | Room: INR   691,600.00 | Svc: INR  34,580.00 | Tax: INR  36,309.00 | Total: INR   762,489.00
+Room Type: STD  | Bookings: 28  | Room: INR   406,000.00 | Svc: INR  20,300.00 | Tax: INR  21,315.00 | Total: INR   447,615.00
+Room Type: STE  | Bookings: 29  | Room: INR 1,003,200.00 | Svc: INR  50,160.00 | Tax: INR 189,604.80 | Total: INR 1,242,964.80
+GRAND TOTAL     | Bookings: 90  | Total Revenue: INR   2,453,068.80
